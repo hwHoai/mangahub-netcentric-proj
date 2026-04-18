@@ -19,3 +19,6 @@
 10. Advanced filtering
 
 11. Rating
+
+# References
+- [Database Schema](https://dbdiagram.io/d/Net-centric-mangahub-69e0f29d8089629684b4cd7c)
