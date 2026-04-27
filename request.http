@@ -1,1 +1,17 @@
-http://localhost:8081/api/v1/secret
+@baseUrl = http://localhost:8081
+
+### Health check
+GET {{baseUrl}}/api/v1/health
+
+### Signup by username
+POST {{baseUrl}}/api/v1/signup
+Content-Type: application/x-www-form-urlencoded
+
+username=testuser&password=testpassword
+
+### Login by username
+POST {{baseUrl}}/api/v1/login
+Content-Type: application/x-www-form-urlencoded
+
+username=testuser&password=testpassword
+

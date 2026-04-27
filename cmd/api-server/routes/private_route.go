@@ -2,7 +2,11 @@ package routes
 
 import "github.com/gin-gonic/gin"
 
-func SetupPrivateRoutes(rg *gin.RouterGroup, opts any) {
+type PrivateRouteOpts struct {
+	// Add any dependencies needed for private routes here (e.g., services, repositories)
+}
+
+func SetupPrivateRoutes(rg *gin.RouterGroup, opts *PrivateRouteOpts) {
 	//1. Handler definition
 
 	//2. Middleware for private routes can be added here (e.g., JWT Authentication)

@@ -9,15 +9,16 @@ import (
 	"syscall"
 	"time"
 
+	routes "mangahub/cmd/api-server/routes"
+
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	routes "mangahub/cmd/api-server/routes"
-	
 )
 
 func main() {
 	// 1. Load file .env trước khi làm bất cứ việc gì khác
-	if err := godotenv.Load(); err != nil {
+	
+	if err := godotenv.Load("../../.env"); err != nil {
 		// log.Fatalf will stop the program
 		log.Println("Warning: No .env file found, using environment variables if set")
 	}
@@ -30,7 +31,7 @@ func main() {
 	r.Use(gin.Logger())
 	
 	// 4. Routes definition
-	routes.SetupRoutes(r, nil)
+	routes.SetupRoutes(r)
 
 	// 5. Configure HTTP Server
 	port, srv := getServerConfiguration(r)
