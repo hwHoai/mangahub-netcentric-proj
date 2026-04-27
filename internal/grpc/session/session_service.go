@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"mangahub/pkg/models"
-	"mangahub/pkg/models/repository/impl"
+	"mangahub/pkg/repository/impl"
 	"mangahub/proto/session"
 
 	"gorm.io/gorm"
@@ -43,4 +43,44 @@ func (s *GRPCSessionService) SaveSession(ctx context.Context, req *session.SaveS
 		CreatedAt:    savedSession.CreatedAt.Format("2006-01-02 15:04:05"),
 	}
 	return response, nil
+}
+
+func (s *GRPCSessionService) UpdateSession(ctx context.Context, req *session.UpdateSessionRequest) (*session.UpdateSessionResponse, error) {
+	if req == nil {
+		return nil, fmt.Errorf("request is required")
+	}
+
+	if req.UserId == "" || req.AccessToken == "" || req.RefreshToken == "" {
+		return nil, fmt.Errorf("user_id, access_token, and refresh_token are required")
+	}
+
+	sessionRepo := impl.NewSessionRepository(s.DBConn)
+	updatedSession, err := sessionRepo.UpdateSessionByUserID(req.UserId, req.AccessToken, req.RefreshToken, req.PublicKey)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			newSession := models.NewSessionModel(req.UserId, req.AccessToken, req.RefreshToken, req.PublicKey)
+			savedSession, saveErr := sessionRepo.SaveSession(&newSession)
+			if saveErr != nil {
+				return nil, fmt.Errorf("failed to create session: %w", saveErr)
+			}
+
+			return &session.UpdateSessionResponse{
+				SessionId:    savedSession.ID,
+				UserId:       savedSession.UserID,
+				AccessToken:  savedSession.AccessToken,
+				RefreshToken: savedSession.RefreshToken,
+				UpdatedAt:    savedSession.UpdatedAt.Format("2006-01-02 15:04:05"),
+			}, nil
+		}
+
+		return nil, fmt.Errorf("failed to update session: %w", err)
+	}
+
+	return &session.UpdateSessionResponse{
+		SessionId:    updatedSession.ID,
+		UserId:       updatedSession.UserID,
+		AccessToken:  updatedSession.AccessToken,
+		RefreshToken: updatedSession.RefreshToken,
+		UpdatedAt:    updatedSession.UpdatedAt.Format("2006-01-02 15:04:05"),
+	}, nil
 }

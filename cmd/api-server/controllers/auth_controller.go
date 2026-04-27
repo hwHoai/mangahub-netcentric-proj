@@ -29,9 +29,17 @@ func (ac *AuthController) LoginByUsername(c *gin.Context) {
 		return
 	}
 
+	if ac.grpcSessionClient == nil {
+		c.JSON(500, gin.H{
+			"error": "Session service is unavailable",
+		})
+		return
+	}
+
 	loginServices := auth_service_impl.LoginServiceImpl{
-		Context:        c,
-		GRPCUserClient: ac.grpcUserClient,
+		Context:           c,
+		GRPCUserClient:    ac.grpcUserClient,
+		GRPCSessionClient: ac.grpcSessionClient,
 	}
 	response, exception := loginServices.LoginByUsername(&dto.LoginByUsernameRequest{
 		Username: c.PostForm("username"),

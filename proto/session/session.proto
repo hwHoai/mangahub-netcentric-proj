@@ -19,8 +19,25 @@ message SaveSessionResponse {
     string created_at = 5;
 }
 
+message UpdateSessionRequest {
+    string user_id = 1;
+    string access_token = 2;
+    string refresh_token = 3;
+    string public_key = 4;
+}
+
+message UpdateSessionResponse {
+    string session_id = 1;
+    string user_id = 2;
+    string access_token = 3;
+    string refresh_token = 4;
+    string updated_at = 5;
+}
+
 // GRPCSessionService provides RPC endpoints for session management.
 service GRPCSessionService {
     // SaveSession saves a user session with access and refresh tokens.
     rpc SaveSession(SaveSessionRequest) returns (SaveSessionResponse);
+    // UpdateSession updates an existing session for a user.
+    rpc UpdateSession(UpdateSessionRequest) returns (UpdateSessionResponse);
 }

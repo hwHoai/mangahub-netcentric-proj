@@ -2,7 +2,7 @@ package impl
 
 import (
 	"mangahub/pkg/models"
-	"mangahub/pkg/models/repository"
+	"mangahub/pkg/repository"
 
 	"gorm.io/gorm"
 )
@@ -31,5 +31,23 @@ func (r *SessionRepositoryImpl) GetSessionByAccessToken(token string) (*models.S
 	if result.Error != nil {
 		return nil, result.Error
 	}
+	return &session, nil
+}
+
+func (r *SessionRepositoryImpl) UpdateSessionByUserID(userID, accessToken, refreshToken, publicKey string) (*models.SessionModel, error) {
+	var session models.SessionModel
+	result := r.db.Where("user_id = ?", userID).First(&session)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	session.AccessToken = accessToken
+	session.RefreshToken = refreshToken
+	session.PublicKey = publicKey
+
+	if err := r.db.Save(&session).Error; err != nil {
+		return nil, err
+	}
+
 	return &session, nil
 }

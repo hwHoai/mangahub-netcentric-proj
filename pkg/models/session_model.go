@@ -7,7 +7,7 @@ type SessionModel struct {
 	UserID string `gorm:"type:varchar(36);index;" json:"user_id"`
 	AccessToken string `gorm:"type:varchar(255);unique;index" json:"access_token"`
 	RefreshToken string `gorm:"type:varchar(255);unique;index" json:"refresh_token"`
-	PublicKey string `gorm:"type:varchar(255)" json:"public_key"`
+	PublicKey string `gorm:"type:text" json:"public_key"`
 
 	//FK constraint
 	User UserModel `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"user"`

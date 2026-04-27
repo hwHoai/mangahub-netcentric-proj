@@ -5,7 +5,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"mangahub/pkg/models"
-	"mangahub/pkg/models/repository/impl"
+	"mangahub/pkg/repository/impl"
 	"mangahub/proto/user"
 
 	"gorm.io/gorm"
@@ -25,10 +25,11 @@ func (s *GRPCUserService) GetUserModelByUsername(ctx context.Context, req *user.
 	}
 	// 2. Map userModel to gRPC response
 	response := &user.GetUserModelByUsernameResponse{
-		UserId: userModel.ID,
-		Username: userModel.Username,
-		CreatedAt: userModel.CreatedAt.Format("2006-01-02 15:04:05"),
-		UpdatedAt: userModel.UpdatedAt.Format("2006-01-02 15:04:05"),
+		UserId:          userModel.ID,
+		Username:        userModel.Username,
+		CreatedAt:       userModel.CreatedAt.Format("2006-01-02 15:04:05"),
+		UpdatedAt:       userModel.UpdatedAt.Format("2006-01-02 15:04:05"),
+		HashedPassword:  userModel.HashedPassword,
 	}
 	return response, nil
 }
@@ -60,4 +61,4 @@ func (s *GRPCUserService) CreateNewUser(ctx context.Context, req *user.CreateNew
 		UpdatedAt: savedUser.UpdatedAt.Format("2006-01-02 15:04:05"),
 	}
 	return response, nil
-}	
+}

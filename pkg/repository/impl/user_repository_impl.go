@@ -2,7 +2,7 @@ package impl
 
 import (
 	"mangahub/pkg/models"
-	"mangahub/pkg/models/repository"
+	"mangahub/pkg/repository"
 
 	"gorm.io/gorm"
 )

@@ -68,13 +68,14 @@ func (x *GetUserModelByUsernameRequest) GetUsername() string {
 
 // GetUserModelByUsernameResponse contains the user information retrieved based on the provided username.
 type GetUserModelByUsernameResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
-	CreatedAt     string                 `protobuf:"bytes,3,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     string                 `protobuf:"bytes,4,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	UserId         string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Username       string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	CreatedAt      string                 `protobuf:"bytes,3,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt      string                 `protobuf:"bytes,4,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	HashedPassword string                 `protobuf:"bytes,5,opt,name=hashed_password,json=hashedPassword,proto3" json:"hashed_password,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *GetUserModelByUsernameResponse) Reset() {
@@ -131,6 +132,13 @@ func (x *GetUserModelByUsernameResponse) GetCreatedAt() string {
 func (x *GetUserModelByUsernameResponse) GetUpdatedAt() string {
 	if x != nil {
 		return x.UpdatedAt
+	}
+	return ""
+}
+
+func (x *GetUserModelByUsernameResponse) GetHashedPassword() string {
+	if x != nil {
+		return x.HashedPassword
 	}
 	return ""
 }
@@ -261,14 +269,15 @@ const file_proto_user_user_proto_rawDesc = "" +
 	"\n" +
 	"\x15proto/user/user.proto\x12\x04user\";\n" +
 	"\x1dGetUserModelByUsernameRequest\x12\x1a\n" +
-	"\busername\x18\x01 \x01(\tR\busername\"\x93\x01\n" +
+	"\busername\x18\x01 \x01(\tR\busername\"\xbc\x01\n" +
 	"\x1eGetUserModelByUsernameResponse\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x1d\n" +
 	"\n" +
 	"created_at\x18\x03 \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x04 \x01(\tR\tupdatedAt\"N\n" +
+	"updated_at\x18\x04 \x01(\tR\tupdatedAt\x12'\n" +
+	"\x0fhashed_password\x18\x05 \x01(\tR\x0ehashedPassword\"N\n" +
 	"\x14CreateNewUserRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\"\x8a\x01\n" +

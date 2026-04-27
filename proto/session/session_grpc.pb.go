@@ -19,7 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	GRPCSessionService_SaveSession_FullMethodName = "/session.GRPCSessionService/SaveSession"
+	GRPCSessionService_SaveSession_FullMethodName   = "/session.GRPCSessionService/SaveSession"
+	GRPCSessionService_UpdateSession_FullMethodName = "/session.GRPCSessionService/UpdateSession"
 )
 
 // GRPCSessionServiceClient is the client API for GRPCSessionService service.
@@ -30,6 +31,8 @@ const (
 type GRPCSessionServiceClient interface {
 	// SaveSession saves a user session with access and refresh tokens.
 	SaveSession(ctx context.Context, in *SaveSessionRequest, opts ...grpc.CallOption) (*SaveSessionResponse, error)
+	// UpdateSession updates an existing session for a user.
+	UpdateSession(ctx context.Context, in *UpdateSessionRequest, opts ...grpc.CallOption) (*UpdateSessionResponse, error)
 }
 
 type gRPCSessionServiceClient struct {
@@ -50,6 +53,16 @@ func (c *gRPCSessionServiceClient) SaveSession(ctx context.Context, in *SaveSess
 	return out, nil
 }
 
+func (c *gRPCSessionServiceClient) UpdateSession(ctx context.Context, in *UpdateSessionRequest, opts ...grpc.CallOption) (*UpdateSessionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateSessionResponse)
+	err := c.cc.Invoke(ctx, GRPCSessionService_UpdateSession_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GRPCSessionServiceServer is the server API for GRPCSessionService service.
 // All implementations must embed UnimplementedGRPCSessionServiceServer
 // for forward compatibility.
@@ -58,6 +71,8 @@ func (c *gRPCSessionServiceClient) SaveSession(ctx context.Context, in *SaveSess
 type GRPCSessionServiceServer interface {
 	// SaveSession saves a user session with access and refresh tokens.
 	SaveSession(context.Context, *SaveSessionRequest) (*SaveSessionResponse, error)
+	// UpdateSession updates an existing session for a user.
+	UpdateSession(context.Context, *UpdateSessionRequest) (*UpdateSessionResponse, error)
 	mustEmbedUnimplementedGRPCSessionServiceServer()
 }
 
@@ -70,6 +85,9 @@ type UnimplementedGRPCSessionServiceServer struct{}
 
 func (UnimplementedGRPCSessionServiceServer) SaveSession(context.Context, *SaveSessionRequest) (*SaveSessionResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SaveSession not implemented")
+}
+func (UnimplementedGRPCSessionServiceServer) UpdateSession(context.Context, *UpdateSessionRequest) (*UpdateSessionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateSession not implemented")
 }
 func (UnimplementedGRPCSessionServiceServer) mustEmbedUnimplementedGRPCSessionServiceServer() {}
 func (UnimplementedGRPCSessionServiceServer) testEmbeddedByValue()                            {}
@@ -110,6 +128,24 @@ func _GRPCSessionService_SaveSession_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GRPCSessionService_UpdateSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateSessionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GRPCSessionServiceServer).UpdateSession(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GRPCSessionService_UpdateSession_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GRPCSessionServiceServer).UpdateSession(ctx, req.(*UpdateSessionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // GRPCSessionService_ServiceDesc is the grpc.ServiceDesc for GRPCSessionService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -120,6 +156,10 @@ var GRPCSessionService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SaveSession",
 			Handler:    _GRPCSessionService_SaveSession_Handler,
+		},
+		{
+			MethodName: "UpdateSession",
+			Handler:    _GRPCSessionService_UpdateSession_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
