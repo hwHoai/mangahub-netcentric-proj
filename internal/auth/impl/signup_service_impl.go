@@ -2,8 +2,7 @@ package auth_service_impl
 
 import (
 	"context"
-	"crypto/x509"
-	"encoding/pem"
+	"crypto/rsa"
 	"errors"
 
 	"mangahub/internal/auth"
@@ -18,6 +17,7 @@ type SignupServiceImpl struct {
 	Context              any
 	GRPCUserClient       user.GRPCUserServiceClient
 	GRPCSessionClient    session.GRPCSessionServiceClient
+	PrivateKey           *rsa.PrivateKey
 }
 
 var _ auth.SignupService = (*SignupServiceImpl)(nil)
@@ -73,11 +73,11 @@ func (s *SignupServiceImpl) SignupByUsername(request *dto.SignupByUsernameReques
 
 	// 3. Initialize JWT service and create RSA key pair for token signing
 	jwtService := NewJWTService()
-	privateKey, _, err := jwtService.CreateRSAKeyPair(2048)
-	if err != nil {
+	privateKey := s.PrivateKey
+	if privateKey == nil {
 		return nil, dto.ExceptionDTO{
 			Code:    500,
-			Message: "Failed to create RSA key pair",
+			Message: "Private key is unavailable",
 		}
 	}
 
@@ -98,27 +98,11 @@ func (s *SignupServiceImpl) SignupByUsername(request *dto.SignupByUsernameReques
 		}
 	}
 
-	// 5. Export public key to PEM format
-	publicKey := privateKey.PublicKey
-	publicKeyBytes, err := x509.MarshalPKIXPublicKey(&publicKey)
-	if err != nil {
-		return nil, dto.ExceptionDTO{
-			Code:    500,
-			Message: "Failed to export public key",
-		}
-	}
-
-	publicKeyPEM := pem.EncodeToMemory(&pem.Block{
-		Type:  "PUBLIC KEY",
-		Bytes: publicKeyBytes,
-	})
-
 	// 6. Save session to database via gRPC
 	saveSessionReq := &session.SaveSessionRequest{
 		UserId:       grpcResponse.UserId,
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
-		PublicKey:    string(publicKeyPEM),
 	}
 
 	_, err = s.GRPCSessionClient.SaveSession(ctx, saveSessionReq)

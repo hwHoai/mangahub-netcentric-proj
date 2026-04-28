@@ -27,4 +27,5 @@ type JWTService interface {
 	SignJWTToken(subject string, expiresIn time.Duration, privateKey *rsa.PrivateKey) (string, error)
 	VerifyJWTToken(token string, publicKey *rsa.PublicKey) (*JWTClaims, error)
 	IsExpire(expUnix int64) bool
+	ParsePublicKeyPEM(publicKeyPEM string) (*rsa.PublicKey, error)
 }

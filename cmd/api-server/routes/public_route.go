@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"crypto/rsa"
 	"mangahub/cmd/api-server/controllers"
 	"mangahub/proto/session"
 	"mangahub/proto/user"
@@ -11,6 +12,8 @@ import (
 type PublicRouteOpts struct {
 	gRPCUserClient    user.GRPCUserServiceClient
 	gRPCSessionClient session.GRPCSessionServiceClient
+	PrivateKey        *rsa.PrivateKey
+	PublicKey         *rsa.PublicKey
 }
 
 func SetupPublicRoutes(rg *gin.RouterGroup, opts *PublicRouteOpts) {
@@ -18,7 +21,7 @@ func SetupPublicRoutes(rg *gin.RouterGroup, opts *PublicRouteOpts) {
 	grpcUserClient := opts.gRPCUserClient
 	grpcSessionClient := opts.gRPCSessionClient
 
-	authController := controllers.NewAuthController(grpcUserClient, grpcSessionClient)
+	authController := controllers.NewAuthController(grpcUserClient, grpcSessionClient, opts.PrivateKey, opts.PublicKey)
 
 	//2. Middleware for public routes can be added here (if needed)
 

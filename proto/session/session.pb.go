@@ -26,7 +26,6 @@ type SaveSessionRequest struct {
 	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	AccessToken   string                 `protobuf:"bytes,2,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
 	RefreshToken  string                 `protobuf:"bytes,3,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
-	PublicKey     string                 `protobuf:"bytes,4,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -78,13 +77,6 @@ func (x *SaveSessionRequest) GetAccessToken() string {
 func (x *SaveSessionRequest) GetRefreshToken() string {
 	if x != nil {
 		return x.RefreshToken
-	}
-	return ""
-}
-
-func (x *SaveSessionRequest) GetPublicKey() string {
-	if x != nil {
-		return x.PublicKey
 	}
 	return ""
 }
@@ -170,7 +162,6 @@ type UpdateSessionRequest struct {
 	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	AccessToken   string                 `protobuf:"bytes,2,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
 	RefreshToken  string                 `protobuf:"bytes,3,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
-	PublicKey     string                 `protobuf:"bytes,4,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -222,13 +213,6 @@ func (x *UpdateSessionRequest) GetAccessToken() string {
 func (x *UpdateSessionRequest) GetRefreshToken() string {
 	if x != nil {
 		return x.RefreshToken
-	}
-	return ""
-}
-
-func (x *UpdateSessionRequest) GetPublicKey() string {
-	if x != nil {
-		return x.PublicKey
 	}
 	return ""
 }
@@ -313,13 +297,11 @@ var File_proto_session_session_proto protoreflect.FileDescriptor
 
 const file_proto_session_session_proto_rawDesc = "" +
 	"\n" +
-	"\x1bproto/session/session.proto\x12\asession\"\x94\x01\n" +
+	"\x1bproto/session/session.proto\x12\asession\"u\n" +
 	"\x12SaveSessionRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12!\n" +
 	"\faccess_token\x18\x02 \x01(\tR\vaccessToken\x12#\n" +
-	"\rrefresh_token\x18\x03 \x01(\tR\frefreshToken\x12\x1d\n" +
-	"\n" +
-	"public_key\x18\x04 \x01(\tR\tpublicKey\"\xb4\x01\n" +
+	"\rrefresh_token\x18\x03 \x01(\tR\frefreshToken\"\xb4\x01\n" +
 	"\x13SaveSessionResponse\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x17\n" +
@@ -327,13 +309,11 @@ const file_proto_session_session_proto_rawDesc = "" +
 	"\faccess_token\x18\x03 \x01(\tR\vaccessToken\x12#\n" +
 	"\rrefresh_token\x18\x04 \x01(\tR\frefreshToken\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\x05 \x01(\tR\tcreatedAt\"\x96\x01\n" +
+	"created_at\x18\x05 \x01(\tR\tcreatedAt\"w\n" +
 	"\x14UpdateSessionRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12!\n" +
 	"\faccess_token\x18\x02 \x01(\tR\vaccessToken\x12#\n" +
-	"\rrefresh_token\x18\x03 \x01(\tR\frefreshToken\x12\x1d\n" +
-	"\n" +
-	"public_key\x18\x04 \x01(\tR\tpublicKey\"\xb6\x01\n" +
+	"\rrefresh_token\x18\x03 \x01(\tR\frefreshToken\"\xb6\x01\n" +
 	"\x15UpdateSessionResponse\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x17\n" +

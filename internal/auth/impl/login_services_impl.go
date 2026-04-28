@@ -1,10 +1,10 @@
 package auth_service_impl
 
 import (
+	"crypto/rsa"
 	"crypto/sha256"
-	"crypto/x509"
-	"encoding/pem"
 	"fmt"
+
 	"mangahub/internal/auth"
 	"mangahub/pkg/dto"
 	"mangahub/proto/session"
@@ -17,12 +17,12 @@ type LoginServiceImpl struct {
 	GRPCUserClient    user.GRPCUserServiceClient
 	GRPCSessionClient session.GRPCSessionServiceClient
 	Context           *gin.Context
+	PrivateKey        *rsa.PrivateKey
 }
 
 var _ auth.LoginService = (*LoginServiceImpl)(nil)
 
 func (s *LoginServiceImpl) LoginByUsername(request *dto.LoginByUsernameRequest) (*dto.LoginByUsernameResponse, dto.ExceptionDTO) {
-	// 1. Check the request is valid
 	if request.Username == "" || request.Password == "" {
 		return nil, dto.ExceptionDTO{
 			Code:    400,
@@ -30,7 +30,6 @@ func (s *LoginServiceImpl) LoginByUsername(request *dto.LoginByUsernameRequest) 
 		}
 	}
 
-	// 2. Retrieve user data from gRPC
 	grpcRequest := &user.GetUserModelByUsernameRequest{
 		Username: request.Username,
 	}
@@ -52,17 +51,15 @@ func (s *LoginServiceImpl) LoginByUsername(request *dto.LoginByUsernameRequest) 
 		}
 	}
 
-	// 3. Initialize JWT service and create RSA key pair for token signing
-	jwtService := NewJWTService()
-	privateKey, _, err := jwtService.CreateRSAKeyPair(2048)
-	if err != nil {
+	privateKey := s.PrivateKey
+	if privateKey == nil {
 		return nil, dto.ExceptionDTO{
 			Code:    500,
-			Message: "Failed to create RSA key pair",
+			Message: "Private key is unavailable",
 		}
 	}
 
-	// 4. Sign tokens
+	jwtService := NewJWTService()
 	accessToken, err := jwtService.SignJWTToken(grpcResponse.UserId, auth.AccessTokenTTL, privateKey)
 	if err != nil {
 		return nil, dto.ExceptionDTO{
@@ -79,28 +76,11 @@ func (s *LoginServiceImpl) LoginByUsername(request *dto.LoginByUsernameRequest) 
 		}
 	}
 
-	// 5. Export public key to PEM format
-	publicKey := privateKey.PublicKey
-	publicKeyBytes, err := x509.MarshalPKIXPublicKey(&publicKey)
-	if err != nil {
-		return nil, dto.ExceptionDTO{
-			Code:    500,
-			Message: "Failed to export public key",
-		}
-	}
-
-	publicKeyPEM := pem.EncodeToMemory(&pem.Block{
-		Type:  "PUBLIC KEY",
-		Bytes: publicKeyBytes,
-	})
-
-	// 6. Update session via gRPC
 	if s.GRPCSessionClient != nil {
 		_, err = s.GRPCSessionClient.UpdateSession(s.Context.Request.Context(), &session.UpdateSessionRequest{
 			UserId:       grpcResponse.UserId,
 			AccessToken:  accessToken,
 			RefreshToken: refreshToken,
-			PublicKey:    string(publicKeyPEM),
 		})
 		if err != nil {
 			return nil, dto.ExceptionDTO{

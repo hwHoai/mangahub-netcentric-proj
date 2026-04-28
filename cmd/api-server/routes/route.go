@@ -1,12 +1,13 @@
 package routes
 
 import (
+	"crypto/rsa"
 	"mangahub/internal/grpc"
 
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRoutes(r *gin.Engine) {
+func SetupRoutes(r *gin.Engine, privateKey *rsa.PrivateKey, publicKey *rsa.PublicKey) {
 	//1. Define gRPC clients for services
 	grpcUserClient, _, err := grpc.NewUserGRPCClient()
 	if err != nil {
@@ -27,16 +28,19 @@ func SetupRoutes(r *gin.Engine) {
 			"status": "ok",
 		})
 	})
-
-	private_route_opts := &PrivateRouteOpts{
-		// Add any dependencies needed for private routes here
-	}
-	SetupPrivateRoutes(v1, private_route_opts)
-
 	public_route_opts := &PublicRouteOpts{
 		gRPCUserClient:    grpcUserClient,
 		gRPCSessionClient: grpcSessionClient,
+		PrivateKey:        privateKey,
+		PublicKey:         publicKey,
 	}
 	SetupPublicRoutes(v1, public_route_opts)
+
+	private_route_opts := &PrivateRouteOpts{
+		PublicKey: publicKey,
+	}
+	SetupPrivateRoutes(v1, private_route_opts)
+
+	
 
 }

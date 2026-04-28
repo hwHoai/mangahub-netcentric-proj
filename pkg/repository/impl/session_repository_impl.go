@@ -34,7 +34,7 @@ func (r *SessionRepositoryImpl) GetSessionByAccessToken(token string) (*models.S
 	return &session, nil
 }
 
-func (r *SessionRepositoryImpl) UpdateSessionByUserID(userID, accessToken, refreshToken, publicKey string) (*models.SessionModel, error) {
+func (r *SessionRepositoryImpl) UpdateSessionByUserID(userID, accessToken, refreshToken string) (*models.SessionModel, error) {
 	var session models.SessionModel
 	result := r.db.Where("user_id = ?", userID).First(&session)
 	if result.Error != nil {
@@ -43,11 +43,19 @@ func (r *SessionRepositoryImpl) UpdateSessionByUserID(userID, accessToken, refre
 
 	session.AccessToken = accessToken
 	session.RefreshToken = refreshToken
-	session.PublicKey = publicKey
 
 	if err := r.db.Save(&session).Error; err != nil {
 		return nil, err
 	}
 
+	return &session, nil
+}
+
+func (r *SessionRepositoryImpl) GetSessionByUserID(userID string) (*models.SessionModel, error) {
+	var session models.SessionModel
+	result := r.db.Where("user_id = ?", userID).First(&session)
+	if result.Error != nil {
+		return nil, result.Error
+	}
 	return &session, nil
 }

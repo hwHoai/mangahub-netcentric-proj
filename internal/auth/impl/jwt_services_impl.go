@@ -3,7 +3,9 @@ package auth_service_impl
 import (
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"time"
@@ -43,7 +45,7 @@ func (s *JWTServiceImpl) SignJWTToken(subject string, expiresIn time.Duration, p
 	}
 	now := time.Now()
 	claims := jwt.MapClaims{
-		"sub":        subject,
+		"sub":        subject, // User ID
 		"iat":        now.Unix(),
 		"exp":        now.Add(expiresIn).Unix(),
 	}
@@ -99,6 +101,29 @@ func (s *JWTServiceImpl) VerifyJWTToken(token string, publicKey *rsa.PublicKey) 
 
 func (s *JWTServiceImpl) IsExpire(expUnix int64) bool {
 	return time.Now().Unix() >= expUnix
+}
+
+func (s *JWTServiceImpl) ParsePublicKeyPEM(publicKeyPEM string) (*rsa.PublicKey, error) {
+	if publicKeyPEM == "" {
+		return nil, errors.New("public key is empty")
+	}
+
+	block, _ := pem.Decode([]byte(publicKeyPEM))
+	if block == nil {
+		return nil, errors.New("failed to decode public key PEM")
+	}
+
+	publicKeyInterface, err := x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse public key: %w", err)
+	}
+
+	publicKey, ok := publicKeyInterface.(*rsa.PublicKey)
+	if !ok {
+		return nil, errors.New("public key is not RSA format")
+	}
+
+	return publicKey, nil
 }
 
 func numericClaimToInt64(value any) (int64, error) {

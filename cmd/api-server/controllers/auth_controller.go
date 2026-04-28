@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"crypto/rsa"
 	auth_service_impl "mangahub/internal/auth/impl"
 	"mangahub/pkg/dto"
 	"mangahub/proto/session"
@@ -12,12 +13,16 @@ import (
 type AuthController struct {
 	grpcUserClient    user.GRPCUserServiceClient
 	grpcSessionClient session.GRPCSessionServiceClient
+	privateKey        *rsa.PrivateKey
+	publicKey         *rsa.PublicKey
 }
 
-func NewAuthController(grpcUserClient user.GRPCUserServiceClient, grpcSessionClient session.GRPCSessionServiceClient) *AuthController {
+func NewAuthController(grpcUserClient user.GRPCUserServiceClient, grpcSessionClient session.GRPCSessionServiceClient, privateKey *rsa.PrivateKey, publicKey *rsa.PublicKey) *AuthController {
 	return &AuthController{
 		grpcUserClient:    grpcUserClient,
 		grpcSessionClient: grpcSessionClient,
+		privateKey:        privateKey,
+		publicKey:         publicKey,
 	}
 }
 
@@ -40,6 +45,7 @@ func (ac *AuthController) LoginByUsername(c *gin.Context) {
 		Context:           c,
 		GRPCUserClient:    ac.grpcUserClient,
 		GRPCSessionClient: ac.grpcSessionClient,
+		PrivateKey:        ac.privateKey,
 	}
 	response, exception := loginServices.LoginByUsername(&dto.LoginByUsernameRequest{
 		Username: c.PostForm("username"),
@@ -75,6 +81,7 @@ func (ac *AuthController) SignupByUsername(c *gin.Context) {
 		Context:            c.Request.Context(),
 		GRPCUserClient:     ac.grpcUserClient,
 		GRPCSessionClient:  ac.grpcSessionClient,
+		PrivateKey:         ac.privateKey,
 	}	
 	response, exception := signupServices.SignupByUsername(&dto.SignupByUsernameRequest{
 		Username: c.PostForm("username"),

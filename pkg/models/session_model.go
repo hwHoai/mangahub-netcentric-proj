@@ -7,7 +7,6 @@ type SessionModel struct {
 	UserID string `gorm:"type:varchar(36);index;" json:"user_id"`
 	AccessToken string `gorm:"type:varchar(255);unique;index" json:"access_token"`
 	RefreshToken string `gorm:"type:varchar(255);unique;index" json:"refresh_token"`
-	PublicKey string `gorm:"type:text" json:"public_key"`
 
 	//FK constraint
 	User UserModel `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"user"`
@@ -17,13 +16,12 @@ type SessionModel struct {
 	MetaUpdateModel	`gorm:"embedded"`
 }
 
-func NewSessionModel(userID string, AccessToken string, RefreshToken string, PublicKey string) SessionModel {
+func NewSessionModel(userID string, AccessToken string, RefreshToken string) SessionModel {
 	return SessionModel{
 		ID: uuid.New().String(),
 		UserID: userID,
 		RefreshToken: RefreshToken,
 		AccessToken: AccessToken,
-		PublicKey: PublicKey,
 		BaseModel: BaseModel{},
 		MetaUpdateModel: MetaUpdateModel{},
 	}

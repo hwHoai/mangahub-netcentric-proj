@@ -25,7 +25,7 @@ func (s *GRPCSessionService) SaveSession(ctx context.Context, req *session.SaveS
 	}
 
 	// Create session model
-	sessionModel := models.NewSessionModel(req.UserId, req.AccessToken, req.RefreshToken, req.PublicKey)
+	sessionModel := models.NewSessionModel(req.UserId, req.AccessToken, req.RefreshToken)
 
 	// Save to database
 	sessionRepo := impl.NewSessionRepository(s.DBConn)
@@ -55,10 +55,10 @@ func (s *GRPCSessionService) UpdateSession(ctx context.Context, req *session.Upd
 	}
 
 	sessionRepo := impl.NewSessionRepository(s.DBConn)
-	updatedSession, err := sessionRepo.UpdateSessionByUserID(req.UserId, req.AccessToken, req.RefreshToken, req.PublicKey)
+	updatedSession, err := sessionRepo.UpdateSessionByUserID(req.UserId, req.AccessToken, req.RefreshToken)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			newSession := models.NewSessionModel(req.UserId, req.AccessToken, req.RefreshToken, req.PublicKey)
+			newSession := models.NewSessionModel(req.UserId, req.AccessToken, req.RefreshToken)
 			savedSession, saveErr := sessionRepo.SaveSession(&newSession)
 			if saveErr != nil {
 				return nil, fmt.Errorf("failed to create session: %w", saveErr)

@@ -3,15 +3,18 @@
 ### Health check
 GET {{baseUrl}}/api/v1/health
 
+### Helth check private route
+GET {{baseUrl}}/api/v1/secret
+
 ### Signup by username
 POST {{baseUrl}}/api/v1/signup
 Content-Type: application/x-www-form-urlencoded
 
-username=testuser&password=testpassword
+username=testuser1&password=testpassword1
 
 ### Login by username
 POST {{baseUrl}}/api/v1/login
 Content-Type: application/x-www-form-urlencoded
 
-username=testuser&password=testpassword
+username=testuser2&password=testpassword2
 

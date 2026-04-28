@@ -1,17 +1,22 @@
 package routes
 
-import "github.com/gin-gonic/gin"
+import (
+	"crypto/rsa"
+
+	"mangahub/cmd/api-server/middleware"
+
+	"github.com/gin-gonic/gin"
+)
 
 type PrivateRouteOpts struct {
-	// Add any dependencies needed for private routes here (e.g., services, repositories)
+	PublicKey *rsa.PublicKey
 }
 
 func SetupPrivateRoutes(rg *gin.RouterGroup, opts *PrivateRouteOpts) {
-	//1. Handler definition
-
-	//2. Middleware for private routes can be added here (e.g., JWT Authentication)
+	authMiddleware := middleware.NewAuthMiddleware(opts.PublicKey)
+	rg.Use(authMiddleware.Handler())
 	
-	//3. Route definition
+	// Route definition
 	// Example protected route
 	rg.GET("/secret", func(c *gin.Context) {
 		c.JSON(200, gin.H{

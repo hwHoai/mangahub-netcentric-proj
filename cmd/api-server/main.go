@@ -10,6 +10,7 @@ import (
 	"time"
 
 	routes "mangahub/cmd/api-server/routes"
+	auth_service_impl "mangahub/internal/auth/impl"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -29,17 +30,25 @@ func main() {
 	// 3. Middleware (CORS, Logger, Recovery...)
 	r.Use(gin.Recovery())
 	r.Use(gin.Logger())
-	
-	// 4. Routes definition
-	routes.SetupRoutes(r)
 
-	// 5. Configure HTTP Server
+	// 4. Generate JWT key pair once at startup and keep private key in memory only for auth.
+	jwtService := auth_service_impl.NewJWTService()
+	privateKey, publicKey, err := jwtService.CreateRSAKeyPair(2048)
+	if err != nil {
+		log.Fatalf("failed to create JWT key pair: %v", err)
+	}
+	
+	// 5. Routes definition
+	routes.SetupRoutes(r, privateKey, publicKey)
+	privateKey = nil
+
+	// 6. Configure HTTP Server
 	port, srv := getServerConfiguration(r)
 	
-	// 6. Start Server in a goroutine
+	// 7. Start Server in a goroutine
 	go startServer(port, srv)
 
-	// 7. Graceful Shutdown (Bonus điểm cao)
+	// 8. Graceful Shutdown
 	shutdownServer(srv)
 }
 
