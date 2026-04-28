@@ -1,4 +1,4 @@
-package grpc
+package clients
 
 import (
 	"mangahub/proto/user"
@@ -23,6 +23,7 @@ func NewUserGRPCClient() (user.GRPCUserServiceClient, *grpc.ClientConn, error) {
     client := user.NewGRPCUserServiceClient(conn)
     return client, conn, nil
 }
+
 func NewSessionGRPCClient() (session.GRPCSessionServiceClient, *grpc.ClientConn, error) {
     // Define gRPC server address
 	target := os.Getenv("SERVER_HOST") + ":" + os.Getenv("GRPC_SERVER_PORT")

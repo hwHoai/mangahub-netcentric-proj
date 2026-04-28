@@ -1,4 +1,4 @@
-package grpc_user_services
+package grpc_services_impl
 
 import (
 	"context"
@@ -15,6 +15,8 @@ type GRPCUserService struct {
 	user.UnimplementedGRPCUserServiceServer
 	DBConn *gorm.DB
 }
+
+var _ user.GRPCUserServiceServer = (*GRPCUserService)(nil)
 
 func (s *GRPCUserService) GetUserModelByUsername(ctx context.Context, req *user.GetUserModelByUsernameRequest) (*user.GetUserModelByUsernameResponse, error) {
 	// 1. Fetch user data from database using repository

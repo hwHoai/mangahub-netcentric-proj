@@ -2,19 +2,19 @@ package routes
 
 import (
 	"crypto/rsa"
-	"mangahub/internal/grpc"
+	"mangahub/cmd/api-server/clients"
 
 	"github.com/gin-gonic/gin"
 )
 
 func SetupRoutes(r *gin.Engine, privateKey *rsa.PrivateKey, publicKey *rsa.PublicKey) {
 	//1. Define gRPC clients for services
-	grpcUserClient, _, err := grpc.NewUserGRPCClient()
+	grpcUserClient, _, err := clients.NewUserGRPCClient()
 	if err != nil {
 		panic(err)
 	}
 
-	grpcSessionClient, _, err := grpc.NewSessionGRPCClient()
+	grpcSessionClient, _, err := clients.NewSessionGRPCClient()
 	if err != nil {
 		panic(err)
 	}
@@ -40,7 +40,4 @@ func SetupRoutes(r *gin.Engine, privateKey *rsa.PrivateKey, publicKey *rsa.Publi
 		PublicKey: publicKey,
 	}
 	SetupPrivateRoutes(v1, private_route_opts)
-
-	
-
 }

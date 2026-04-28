@@ -10,7 +10,7 @@ GET {{baseUrl}}/api/v1/secret
 POST {{baseUrl}}/api/v1/signup
 Content-Type: application/x-www-form-urlencoded
 
-username=testuser1&password=testpassword1
+username=testuser&password=testpassword
 
 ### Login by username
 POST {{baseUrl}}/api/v1/login

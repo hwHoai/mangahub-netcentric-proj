@@ -1,4 +1,4 @@
-package grpc_session_services
+package grpc_services_impl
 
 import (
 	"context"
@@ -14,6 +14,8 @@ type GRPCSessionService struct {
 	session.UnimplementedGRPCSessionServiceServer
 	DBConn *gorm.DB
 }
+
+var _ session.GRPCSessionServiceServer = (*GRPCSessionService)(nil)
 
 func (s *GRPCSessionService) SaveSession(ctx context.Context, req *session.SaveSessionRequest) (*session.SaveSessionResponse, error) {
 	if req == nil {

@@ -2,8 +2,8 @@ package main
 
 import (
 	"log"
-	grpc_session_services "mangahub/internal/grpc/session"
-	grpc_user_services "mangahub/internal/grpc/user"
+
+	"mangahub/internal/grpc/impl"
 	dbImpl "mangahub/pkg/database/impl"
 	"mangahub/proto/session"
 	"mangahub/proto/user"
@@ -35,10 +35,10 @@ func main() {
 	grpcServer := grpc.NewServer()
 
 	// 3. Register services
-	userService := &grpc_user_services.GRPCUserService{DBConn: dbConn}
+	userService := &grpc_services_impl.GRPCUserService{DBConn: dbConn}
 	user.RegisterGRPCUserServiceServer(grpcServer, userService)
 
-	sessionService := &grpc_session_services.GRPCSessionService{DBConn: dbConn}
+	sessionService := &grpc_services_impl.GRPCSessionService{DBConn: dbConn}
 	session.RegisterGRPCSessionServiceServer(grpcServer, sessionService)
 
 	// 4. Listen for connections
