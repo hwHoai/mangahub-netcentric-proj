@@ -72,6 +72,7 @@ func (s *SqliteConnImpl) InitDB(dbPath string) (*gorm.DB, error) {
 		&models.ReviewModel{},
 		&models.SessionModel{},
 		&models.WishlistModel{},
+		&models.ChapterModel{},
 		// Thêm các model khác vào đây...
 	)
 	if err != nil {

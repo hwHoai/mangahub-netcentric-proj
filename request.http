@@ -1,10 +1,10 @@
 @baseUrl = http://localhost:8081
+@mangaId = 29b2a759-ab30-4e71-a149-3e853756ce75
+@chapterId = d2f5ea0b-9e2f-4d08-aaed-5166e047e1a7
+@token = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Nzc3OTkzMjksImlhdCI6MTc3Nzc5ODQyOSwic3ViIjoiNjVlYmJlM2ItZGY1NC00ZDBmLWI0OWEtZTQ4ZWE2Zjk4MzIyIn0.tPSnotUkDuJ1RrkydQi-p0vyUDVZ0GTgczecczpzxLyiWgCqM2Z8uXlEUfoBFMeJouqLwWR_98IWGlV0rbIpbuxeK4FcT63CmCPLLz4AWndBUBG89RNsQTHkkQvPDVGQh5QCtbykwtQ3-LjcffHk_967SJ4kBKQU3joT-15hehbKGPIBQR9_pIJg8bpq4wgTK3N4H-kkYZBeaE2qxs70ff0Ez-rN2PzsHd9C28t-7f9LYDIX-RsUwuR7O-qZx6beDXMvSFw9Qfy_5VtqPcqPln9ITLGYJVAvWNLwHBpmR8JefVTdZps9Vm62IdYxOrpE9y4HDoFpLgwTqBuzwWww4A
 
 ### Health check
 GET {{baseUrl}}/api/v1/health
-
-### Helth check private route
-GET {{baseUrl}}/api/v1/secret
 
 ### Signup by username
 POST {{baseUrl}}/api/v1/signup
@@ -16,5 +16,33 @@ username=testuser&password=testpassword
 POST {{baseUrl}}/api/v1/login
 Content-Type: application/x-www-form-urlencoded
 
-username=testuser2&password=testpassword2
+username=testuser&password=testpassword
 
+### List mangas (with pagination)
+GET {{baseUrl}}/api/v1/mangas?limit=10&offset=0
+
+### Get manga detail
+GET {{baseUrl}}/api/v1/mangas/{{mangaId}}
+
+### Get manga chapters
+GET {{baseUrl}}/api/v1/mangas/{{mangaId}}/chapters
+
+###########################################################
+# User Manga APIs (Require Authentication)
+###########################################################
+
+### Follow a manga
+POST {{baseUrl}}/api/v1/user/mangas/{{mangaId}}/follow
+Authorization: Bearer {{token}}
+
+### Unfollow a manga
+DELETE {{baseUrl}}/api/v1/user/mangas/{{mangaId}}/follow
+Authorization: Bearer {{token}}
+
+### Get followed mangas
+GET {{baseUrl}}/api/v1/user/mangas/following?limit=10&offset=0
+Authorization: Bearer {{token}}
+
+### Store reading progress
+POST {{baseUrl}}/api/v1/user/chapters/{{chapterId}}/read
+Authorization: Bearer {{token}}

@@ -1,4 +1,4 @@
-package impl
+package repository_impl
 
 import (
 	"mangahub/pkg/models"
@@ -13,7 +13,7 @@ type SessionRepositoryImpl struct {
 
 var _ repository.SessionRepository = (*SessionRepositoryImpl)(nil)
 
-func NewSessionRepository(db *gorm.DB) *SessionRepositoryImpl {
+func NewSessionRepository(db *gorm.DB) repository.SessionRepository {
 	return &SessionRepositoryImpl{db: db}
 }
 

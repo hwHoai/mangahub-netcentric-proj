@@ -3,15 +3,19 @@ package main
 import (
 	"log"
 
-	"mangahub/internal/grpc/impl"
+	grpc_services_impl "mangahub/internal/grpc/impl"
 	dbImpl "mangahub/pkg/database/impl"
+	"mangahub/pkg/seeder"
+	"mangahub/proto/manga"
 	"mangahub/proto/session"
 	"mangahub/proto/user"
+	"mangahub/proto/user_manga"
 	"net"
 	"os"
 
 	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
+	"gorm.io/gorm"
 )
 
 func main() {
@@ -23,33 +27,71 @@ func main() {
 	if port == ":" {
 		port = ":8084"
 	}
+	dbPath := os.Getenv("DB_PATH")
+	if dbPath == "" {
+		dbPath = "../../data/mangahub.db"
+	}
 
 	// 1. Database Connection
 	database := &dbImpl.SqliteConnImpl{}
-	dbConn, err := database.InitDB(os.Getenv("DB_PATH"))
+	dbConn, err := database.InitDB(dbPath)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
-	// 2. Initialize gRPC Server
+	// 2. Seed manga data from MangaDex API
+	// seedData(dbConn)
+
+	// 3. Initialize gRPC Server
 	grpcServer := grpc.NewServer()
 
-	// 3. Register services
-	userService := &grpc_services_impl.GRPCUserService{DBConn: dbConn}
+	// 4. Register services
+	userService := grpc_services_impl.NewGRPCUserService(dbConn)
 	user.RegisterGRPCUserServiceServer(grpcServer, userService)
 
-	sessionService := &grpc_services_impl.GRPCSessionService{DBConn: dbConn}
+	sessionService := grpc_services_impl.NewGRPCSessionService(dbConn)
 	session.RegisterGRPCSessionServiceServer(grpcServer, sessionService)
 
-	// 4. Listen for connections
+	mangaService := grpc_services_impl.NewGRPCMangaService(dbConn)
+	manga.RegisterGRPCMangaServiceServer(grpcServer, mangaService)
+
+	userMangaService := grpc_services_impl.NewGRPCUserMangaService(dbConn)
+	user_manga.RegisterGRPCUserMangaServiceServer(grpcServer, userMangaService)
+
+	// 5. Listen for connections
 	listener, err := net.Listen("tcp", port)
 	if err != nil {
 		log.Fatalf("Start gRPC Server error: %v", err)
 	}
 
-	// 5. Run Server
+	// 6. Run Server
 	log.Printf("gRPC Server is running on port %s", port)
 	if err := grpcServer.Serve(listener); err != nil {
 		log.Fatalf("Start gRPC Server error: %v", err)
 	}
+}
+
+// seedData retrieves manga data from MangaDex API and stores it in the database
+// It fetches 50 manga per batch and processes 2 batches (100 manga total)
+func seedData(db *gorm.DB) {
+	log.Println("=== Starting Manga Data Seeding ===")
+
+	// Check if database already has manga data
+	var count int64
+	if err := db.Model(&struct{}{}).Table("mangas").Count(&count).Error; err == nil && count > 0 {
+		log.Printf("Database already contains %d manga. Skipping seeding.", count)
+		return
+	}
+
+	// Initialize manga seeder
+	mangaSeeder := seeder.NewMangaSeeder(db)
+
+	// Seed manga data: 50 per batch, 2 batches = 100 manga
+	// Adjust these values as needed
+	if err := mangaSeeder.SeedMangaData(50, 2); err != nil {
+		log.Printf("Error during manga seeding: %v", err)
+		// Don't fatally fail if seeding fails - the server can still run
+	}
+
+	log.Println("=== Manga Data Seeding Completed ===")
 }

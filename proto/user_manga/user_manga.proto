@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package user_manga;
+
+option go_package = "mangahub/proto/user_manga;user_manga";
+
+import "proto/manga/manga.proto";
+
+// Follow / Unfollow
+message FollowMangaRequest {
+	string user_id = 1;
+	string manga_id = 2;
+}
+
+message FollowMangaResponse {
+	string user_id = 1;
+	string manga_id = 2;
+	string created_at = 3;
+}
+
+message UnfollowMangaRequest {
+	string user_id = 1;
+	string manga_id = 2;
+}
+
+message UnfollowMangaResponse {
+	bool success = 1;
+}
+
+// Get Following Mangas
+message GetFollowingMangasRequest {
+	string user_id = 1;
+	int32 limit = 2;
+	int32 offset = 3;
+}
+
+message GetFollowingMangasResponse {
+	repeated manga.Manga mangas = 1;
+}
+
+// Store Reading Progress
+message StoreReadingProgressRequest {
+	string user_id = 1;
+	string chapter_id = 2;
+}
+
+message StoreReadingProgressResponse {
+	string user_id = 1;
+	string manga_id = 2;
+	string status = 3;
+	int32 current_chapter = 4;
+	string updated_at = 5;
+}
+
+service GRPCUserMangaService {
+	rpc FollowManga(FollowMangaRequest) returns (FollowMangaResponse);
+	rpc UnfollowManga(UnfollowMangaRequest) returns (UnfollowMangaResponse);
+	rpc GetFollowingMangas(GetFollowingMangasRequest) returns (GetFollowingMangasResponse);
+	rpc StoreReadingProgress(StoreReadingProgressRequest) returns (StoreReadingProgressResponse);
+}

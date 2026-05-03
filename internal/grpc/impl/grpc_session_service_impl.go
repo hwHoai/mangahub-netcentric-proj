@@ -3,8 +3,9 @@ package grpc_services_impl
 import (
 	"context"
 	"fmt"
+	"mangahub/internal/grpc"
 	"mangahub/pkg/models"
-	"mangahub/pkg/repository/impl"
+	repository_impl "mangahub/pkg/repository/impl"
 	"mangahub/proto/session"
 
 	"gorm.io/gorm"
@@ -12,10 +13,13 @@ import (
 
 type GRPCSessionService struct {
 	session.UnimplementedGRPCSessionServiceServer
-	DBConn *gorm.DB
+	db *gorm.DB
 }
+var _ grpc.GRPCSessionService = (*GRPCSessionService)(nil)
 
-var _ session.GRPCSessionServiceServer = (*GRPCSessionService)(nil)
+func NewGRPCSessionService(db *gorm.DB) *GRPCSessionService {
+	return &GRPCSessionService{db: db}
+}
 
 func (s *GRPCSessionService) SaveSession(ctx context.Context, req *session.SaveSessionRequest) (*session.SaveSessionResponse, error) {
 	if req == nil {
@@ -30,7 +34,7 @@ func (s *GRPCSessionService) SaveSession(ctx context.Context, req *session.SaveS
 	sessionModel := models.NewSessionModel(req.UserId, req.AccessToken, req.RefreshToken)
 
 	// Save to database
-	sessionRepo := impl.NewSessionRepository(s.DBConn)
+	sessionRepo := repository_impl.NewSessionRepository(s.db)
 	savedSession, err := sessionRepo.SaveSession(&sessionModel)
 	if err != nil {
 		return nil, fmt.Errorf("failed to save session: %w", err)
@@ -56,7 +60,7 @@ func (s *GRPCSessionService) UpdateSession(ctx context.Context, req *session.Upd
 		return nil, fmt.Errorf("user_id, access_token, and refresh_token are required")
 	}
 
-	sessionRepo := impl.NewSessionRepository(s.DBConn)
+	sessionRepo := repository_impl.NewSessionRepository(s.db)
 	updatedSession, err := sessionRepo.UpdateSessionByUserID(req.UserId, req.AccessToken, req.RefreshToken)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {

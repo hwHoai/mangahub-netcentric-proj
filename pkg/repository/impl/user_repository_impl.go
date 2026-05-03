@@ -1,4 +1,4 @@
-package impl
+package repository_impl
 
 import (
 	"mangahub/pkg/models"
@@ -13,7 +13,7 @@ type UserRepositoryImpl struct {
 
 var _ repository.UserRepository = (*UserRepositoryImpl)(nil)
 
-func NewUserRepository(db *gorm.DB) *UserRepositoryImpl {
+func NewUserRepository(db *gorm.DB) repository.UserRepository {
 	return &UserRepositoryImpl{db: db}
 }
 

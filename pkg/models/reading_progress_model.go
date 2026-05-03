@@ -10,8 +10,8 @@ type ReadingProgressModel struct {
 	MangaID string `gorm:"primaryKey;type:varchar(36);index" json:"manga_id"`
 
 	//FK constraints
-	User UserModel `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"user"`
-	Manga MangaModel `gorm:"foreignKey:MangaID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"manga"`
+	User UserModel `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
+	Manga MangaModel `gorm:"foreignKey:MangaID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
 	
 	// Reading progress fields
 	Status enums.ReadingStatus `gorm:"type:varchar(20)" json:"status"`

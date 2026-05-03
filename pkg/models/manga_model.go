@@ -23,6 +23,7 @@ type MangaModel struct {
 	Reviews []ReviewModel `gorm:"foreignKey:MangaID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
 	Genres []GenresModel `gorm:"many2many:manga_genres;" json:"genres"`
 	Followers []UserModel `gorm:"many2many:manga_followers;" json:"-"`
+	Chapters  []ChapterModel `gorm:"foreignKey:MangaID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"chapters"`
 
 	// Messages is the chat history for this manga's followers
 	Messages []MessageModel `gorm:"foreignKey:RoomID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
