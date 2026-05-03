@@ -1,9 +1,9 @@
 @baseUrl = http://localhost:8081
-@mangaId = 29b2a759-ab30-4e71-a149-3e853756ce75
-@chapterId = d2f5ea0b-9e2f-4d08-aaed-5166e047e1a7
-@token = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Nzc3OTkzMjksImlhdCI6MTc3Nzc5ODQyOSwic3ViIjoiNjVlYmJlM2ItZGY1NC00ZDBmLWI0OWEtZTQ4ZWE2Zjk4MzIyIn0.tPSnotUkDuJ1RrkydQi-p0vyUDVZ0GTgczecczpzxLyiWgCqM2Z8uXlEUfoBFMeJouqLwWR_98IWGlV0rbIpbuxeK4FcT63CmCPLLz4AWndBUBG89RNsQTHkkQvPDVGQh5QCtbykwtQ3-LjcffHk_967SJ4kBKQU3joT-15hehbKGPIBQR9_pIJg8bpq4wgTK3N4H-kkYZBeaE2qxs70ff0Ez-rN2PzsHd9C28t-7f9LYDIX-RsUwuR7O-qZx6beDXMvSFw9Qfy_5VtqPcqPln9ITLGYJVAvWNLwHBpmR8JefVTdZps9Vm62IdYxOrpE9y4HDoFpLgwTqBuzwWww4A
-@username = testuser1
-@password = testpassword1
+@mangaId = MANGA_ID_HERE
+@chapterId = CHAPTER_ID_HERE
+@token = LOGIN_ACCESS_TOKEN_HERE
+@username = USERNAME_HERE
+@password = PASSWORD_HERE
 
 ### Health check
 GET {{baseUrl}}/api/v1/health
