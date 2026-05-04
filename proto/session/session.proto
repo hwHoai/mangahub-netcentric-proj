@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package session;
+
+option go_package = "github.com/manga_hub/proto/session;session";
+
+message SaveSessionRequest {
+    string user_id = 1;
+    string access_token = 2;
+    string refresh_token = 3;
+}
+
+message SaveSessionResponse {
+    string session_id = 1;
+    string user_id = 2;
+    string access_token = 3;
+    string refresh_token = 4;
+    string created_at = 5;
+}
+
+message UpdateSessionRequest {
+    string user_id = 1;
+    string access_token = 2;
+    string refresh_token = 3;
+}
+
+message UpdateSessionResponse {
+    string session_id = 1;
+    string user_id = 2;
+    string access_token = 3;
+    string refresh_token = 4;
+    string updated_at = 5;
+}
+
+message GetSessionByRefreshTokenRequest {
+    string refresh_token = 1;
+}
+
+message GetSessionByRefreshTokenResponse {
+    string session_id = 1;
+    string user_id = 2;
+    string access_token = 3;
+    string refresh_token = 4;
+    string created_at = 5;
+    string updated_at = 6;
+}
+
+// GRPCSessionService provides RPC endpoints for session management.
+service GRPCSessionService {
+    // SaveSession saves a user session with access and refresh tokens.
+    rpc SaveSession(SaveSessionRequest) returns (SaveSessionResponse);
+    // UpdateSession updates an existing session for a user.
+    rpc UpdateSession(UpdateSessionRequest) returns (UpdateSessionResponse);
+    // GetSessionByRefreshToken retrieves a session based on the provided refresh token.
+    rpc GetSessionByRefreshToken(GetSessionByRefreshTokenRequest) returns (GetSessionByRefreshTokenResponse);
+}

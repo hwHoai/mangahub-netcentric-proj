@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -9,18 +10,29 @@ import (
 	"syscall"
 	"time"
 
+	routes "mangahub/cmd/api-server/routes"
+	tcp_services_impl "mangahub/internal/tcp/impl"
+	jwt_impl "mangahub/pkg/utils/jwt/impl"
+
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	routes "mangahub/cmd/api-server/routes"
-	
 )
 
 func main() {
-	// 1. Load file .env trước khi làm bất cứ việc gì khác
-	if err := godotenv.Load(); err != nil {
+	// 1. Load file .env	
+	if err := godotenv.Load("../../.env"); err != nil {
 		// log.Fatalf will stop the program
 		log.Println("Warning: No .env file found, using environment variables if set")
 	}
+	tcpHost := os.Getenv("TCP_SERVER_HOST")
+	tcpPort := os.Getenv("TCP_SERVER_PORT")
+	if tcpHost == "" {
+		tcpHost = "localhost"
+	}
+	if tcpPort == "" {
+		tcpPort = "8082"
+	}
+	tcpAddr := fmt.Sprintf("%s:%s", tcpHost, tcpPort)
 
 	//2. Setup Router
 	r := gin.Default()
@@ -28,17 +40,32 @@ func main() {
 	// 3. Middleware (CORS, Logger, Recovery...)
 	r.Use(gin.Recovery())
 	r.Use(gin.Logger())
-	
-	// 4. Routes definition
-	routes.SetupRoutes(r, nil)
 
-	// 5. Configure HTTP Server
+	// 4. Generate JWT key pair once at startup and keep private key in memory only for auth.
+	jwtUtil := jwt_impl.NewJWTUtil(nil)
+	privateKey, publicKey, err := jwtUtil.CreateRSAKeyPair(2048)
+	if err != nil {
+		log.Fatalf("failed to create JWT key pair: %v", err)
+	}
+
+	// 4.1 Broadcast public key to TCP server
+	publicKeyPEM, _ := jwtUtil.StringifyPublicKeyPEM(publicKey)
+	tcpKeySyncService := tcp_services_impl.NewTCPKeySyncService(tcpAddr)
+	if err := tcpKeySyncService.SyncPublicKey(publicKeyPEM); err != nil {
+		log.Printf("Warning: failed to broadcast public key to TCP server: %v", err)
+	}
+	
+	// 5. Routes definition
+	routes.SetupRoutes(r, privateKey, publicKey)
+	privateKey = nil
+
+	// 6. Configure HTTP Server
 	port, srv := getServerConfiguration(r)
 	
-	// 6. Start Server in a goroutine
+	// 7. Start Server in a goroutine
 	go startServer(port, srv)
 
-	// 7. Graceful Shutdown (Bonus điểm cao)
+	// 8. Graceful Shutdown
 	shutdownServer(srv)
 }
 

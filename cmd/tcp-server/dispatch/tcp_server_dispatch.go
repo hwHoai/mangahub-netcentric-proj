@@ -2,6 +2,8 @@ package dispatch
 
 import (
 	"log"
+	"mangahub/cmd/tcp-server/middleware"
+	"mangahub/pkg/types"
 	"net"
 )
 
@@ -21,13 +23,21 @@ func (d *Dispatcher) RegisterHandler(action string, handler HandleFunc) {
 	d.handlers[action] = handler
 }
 
-func (d *Dispatcher) Dispatch(conn net.Conn, action string, payload any) {
+func (d *Dispatcher) Dispatch(conn net.Conn, msg types.TCPMessage) {
+	action := msg.Action
+	token := msg.Token
+
+	// Run authentication middleware
+	if err := middleware.AuthMiddleware(action, token); err != nil {
+		log.Printf("Security Block: %v (action: %s)", err, action)
+		return
+	}
+
 	handler, exists := d.handlers[action]
 	if !exists {
 		log.Printf("No handler registered for action: %s", action)
 		return
 	}
 
-	handler(conn, payload)
+	handler(conn, msg.Payload)
 }
-

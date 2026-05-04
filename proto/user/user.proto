@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package user;
+
+option go_package = "mangahub/proto/user;user";
+
+// GetUserModelByUsernameRequest contains the input payload for retrieving user information based on the provided username.
+message GetUserModelByUsernameRequest {
+  string username = 1;
+}
+
+// GetUserModelByUsernameResponse contains the user information retrieved based on the provided username.
+message GetUserModelByUsernameResponse {
+    string user_id = 1;
+    string username = 2;
+    string created_at = 3;
+    string updated_at = 4;
+    string hashed_password = 5;
+}
+
+message CreateNewUserRequest {
+    string username = 1;
+    string password = 2;
+}
+
+message CreateNewUserResponse {
+    string user_id = 1;
+    string username = 2;
+    string created_at = 3;
+    string updated_at = 4;
+}
+
+message GetUserByIDRequest {
+    string user_id = 1;
+}
+
+message GetUserByIDResponse {
+    string user_id = 1;
+    string username = 2;
+    string created_at = 3;
+    string updated_at = 4;
+}
+
+// GRPCUserService provides RPC endpoints related to user operations.
+service GRPCUserService {
+    // GetUserModelByUsername retrieves user information based on the provided username.
+    rpc GetUserModelByUsername(GetUserModelByUsernameRequest) returns (GetUserModelByUsernameResponse);
+    // CreateNewUser creates a new user account.
+    rpc CreateNewUser(CreateNewUserRequest) returns (CreateNewUserResponse);
+    // GetUserByID retrieves user information based on the provided user ID.
+    rpc GetUserByID(GetUserByIDRequest) returns (GetUserByIDResponse);
+}

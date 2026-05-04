@@ -3,12 +3,12 @@ package dispatch
 import (
 	"encoding/json"
 	"log"
-	"mangahub/pkg/models"
+	"mangahub/pkg/types"
 	"net"
 	"sync"
 )
 
-type HandleFunc func(s *UDPServer, payload models.UDPMessage)
+type HandleFunc func(s *UDPServer, payload types.UDPMessage)
 
 type UDPServer struct {
     Conn       *net.UDPConn
@@ -59,7 +59,7 @@ func (s *UDPServer) Start(port string) {
 		// Process UDP message in a new goroutine
 		go func (s *UDPServer, message []byte) {
 			// Parse UDP message
-			var udpMsg models.UDPMessage
+			var udpMsg types.UDPMessage
 			err := json.Unmarshal(message, &udpMsg)
 			if err != nil {
 				log.Printf("Invalid UDP message format: %v", err)
@@ -82,7 +82,7 @@ func (s *UDPServer) RegisterHandler(action string, handler HandleFunc) {
 	s.handlers[action] = handler
 }
 
-func (s *UDPServer) Dispatch(payload models.UDPMessage) {
+func (s *UDPServer) Dispatch(payload types.UDPMessage) {
 	handler, exists := s.handlers[payload.Action]
 	if !exists {
 		log.Printf("No handler registered for action: %s", payload.Action)

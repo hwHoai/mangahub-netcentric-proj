@@ -1,0 +1,69 @@
+@baseUrl = http://localhost:8081
+@mangaId = MANGA_ID_HERE
+@chapterId = CHAPTER_ID_HERE
+@token = LOGIN_ACCESS_TOKEN_HERE
+@username = USERNAME_HERE
+@password = PASSWORD_HERE
+
+### Health check
+GET {{baseUrl}}/api/v1/health
+
+### Signup by username
+POST {{baseUrl}}/api/v1/signup
+Content-Type: application/x-www-form-urlencoded
+
+username={{username}}&password={{password}}
+
+### Login by username
+POST {{baseUrl}}/api/v1/login
+Content-Type: application/x-www-form-urlencoded
+
+username={{username}}&password={{password}}
+
+### Refresh token
+POST {{baseUrl}}/api/v1/auth/refresh
+Content-Type: application/json
+
+{
+    "refresh_token": "REFRESH_TOKEN_HERE"
+}
+
+### List mangas (with pagination)
+GET {{baseUrl}}/api/v1/mangas?limit=10&offset=0
+
+### Get manga detail
+GET {{baseUrl}}/api/v1/mangas/{{mangaId}}
+
+### Get manga chapters
+GET {{baseUrl}}/api/v1/mangas/{{mangaId}}/chapters
+
+###########################################################
+# User Manga APIs (Require Authentication)
+###########################################################
+
+### Follow a manga
+POST {{baseUrl}}/api/v1/user/mangas/{{mangaId}}/follow
+Authorization: Bearer {{token}}
+
+### Unfollow a manga
+DELETE {{baseUrl}}/api/v1/user/mangas/{{mangaId}}/follow
+Authorization: Bearer {{token}}
+
+### Get followed mangas
+GET {{baseUrl}}/api/v1/user/mangas/following?limit=10&offset=0
+Authorization: Bearer {{token}}
+
+### Store reading progress
+POST {{baseUrl}}/api/v1/user/chapters/{{chapterId}}/read
+Authorization: Bearer {{token}}
+
+### Get current user profile
+GET {{baseUrl}}/api/v1/auth/me
+Authorization: Bearer {{token}}
+
+### Read chapter
+GET {{baseUrl}}/api/v1/chapters/{{chapterId}}
+
+### Get reading history
+GET {{baseUrl}}/api/v1/user/history?limit=10&offset=0
+Authorization: Bearer {{token}}

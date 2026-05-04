@@ -1,10 +1,41 @@
 package routes
 
-import "github.com/gin-gonic/gin"
+import (
+	"crypto/rsa"
+	"mangahub/pkg/clients"
 
-func SetupRoutes(r *gin.Engine, opts any) {
-	//1. Handler definition (if needed)
-	
+	"github.com/gin-gonic/gin"
+)
+
+func SetupRoutes(r *gin.Engine, privateKey *rsa.PrivateKey, publicKey *rsa.PublicKey) {
+	//1. Define gRPC clients for services
+	grpcUserClient, _, err := clients.NewUserGRPCClient()
+	if err != nil {
+		panic(err)
+	}
+
+	grpcSessionClient, _, err := clients.NewSessionGRPCClient()
+	if err != nil {
+		panic(err)
+	}
+
+	grpcMangaClient, _, err := clients.NewMangaGRPCClient()
+	if err != nil {
+		panic(err)
+	}
+
+	grpcUserMangaClient, _, err := clients.NewUserMangaGRPCClient()
+	if err != nil {
+		panic(err)
+	}
+
+	grpcChapterClient, _, err := clients.NewChapterGRPCClient()
+	if err != nil {
+		panic(err)
+	}
+
+	tcpChapterSyncClient := clients.NewTCPChapterSyncClient()
+
 	//2. Route definition
 	v1 := r.Group("api/v1")
 	
@@ -14,19 +45,23 @@ func SetupRoutes(r *gin.Engine, opts any) {
 			"status": "ok",
 		})
 	})
-
-	private_route_opts := struct {
-		// Add any options needed for private routes here
-	}{
-		// Initialize options if needed
-	}
-	SetupPrivateRoutes(v1, private_route_opts)
-
-	public_route_opts := struct {
-		// Add any options needed for public routes here
-	}{
-		// Initialize options if needed
+	public_route_opts := &PublicRouteOpts{
+		gRPCUserClient:    grpcUserClient,
+		gRPCSessionClient: grpcSessionClient,
+		GRPCMangaClient:   grpcMangaClient,
+		GRPCChapterClient: grpcChapterClient,
+		PrivateKey:        privateKey,
+		PublicKey:         publicKey,
 	}
 	SetupPublicRoutes(v1, public_route_opts)
 
+	private_route_opts := &PrivateRouteOpts{
+		PublicKey:            publicKey,
+		GRPCUserMangaClient:  grpcUserMangaClient,
+		GRPCUserClient:       grpcUserClient,
+		GRPCSessionClient:    grpcSessionClient,
+		GRPCChapterClient:    grpcChapterClient,
+		TCPChapterSyncClient: tcpChapterSyncClient,
+	}
+	SetupPrivateRoutes(v1, private_route_opts)
 }
