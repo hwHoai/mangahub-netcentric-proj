@@ -50,6 +50,26 @@ message StoreReadingProgressResponse {
 	string status = 3;
 	int32 current_chapter = 4;
 	string updated_at = 5;
+	string created_at = 6;
+}
+
+// Get Reading History
+message GetReadingHistoryRequest {
+	string user_id = 1;
+	int32 limit = 2;
+	int32 offset = 3;
+}
+
+message ReadingHistoryItem {
+	manga.Manga manga = 1;
+	string status = 2;
+	int32 current_chapter = 3;
+	string updated_at = 4;
+	string created_at = 5;
+}
+
+message GetReadingHistoryResponse {
+	repeated ReadingHistoryItem history = 1;
 }
 
 service GRPCUserMangaService {
@@ -57,4 +77,5 @@ service GRPCUserMangaService {
 	rpc UnfollowManga(UnfollowMangaRequest) returns (UnfollowMangaResponse);
 	rpc GetFollowingMangas(GetFollowingMangasRequest) returns (GetFollowingMangasResponse);
 	rpc StoreReadingProgress(StoreReadingProgressRequest) returns (StoreReadingProgressResponse);
+	rpc GetReadingHistory(GetReadingHistoryRequest) returns (GetReadingHistoryResponse);
 }

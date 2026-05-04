@@ -2,8 +2,8 @@ package grpc_services_impl
 
 import (
 	"context"
-	"fmt"
 	"mangahub/internal/grpc"
+	"mangahub/pkg/utils"
 	repository_impl "mangahub/pkg/repository/impl"
 	manga "mangahub/proto/manga"
 
@@ -23,26 +23,26 @@ func NewGRPCMangaService(db *gorm.DB) *GRPCMangaService {
 func (g *GRPCMangaService) GetMangas(ctx context.Context, req *manga.MangaListRequest) (*manga.MangaListResponse, error) {
 	mangaRepository := repository_impl.NewMangaRepository(g.db)
 	mangas, err := mangaRepository.GetMangas(int(req.Limit), int(req.Offset))
-	fmt.Println("mangas: ", mangas[0].Author)
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 
 	var mangaList []*manga.Manga
 	for _, item := range mangas {
 		mangaList = append(mangaList, &manga.Manga{
-			Id: item.ID,
-			Title: item.Title,
-			Author: item.Author,
+			Id:            item.ID,
+			Title:         item.Title,
+			Author:        item.Author,
 			TotalChapters: int32(item.TotalChapters),
-			Description: item.Description,
-			CoverUrl: item.CoverURL,
-			Status: string(item.Status),
+			Description:   item.Description,
+			CoverUrl:      item.CoverURL,
+			Status:        string(item.Status),
+			CreatedAt:     item.CreatedAt.Format(utils.TimeLayout),
+			UpdatedAt:     item.UpdatedAt.Format(utils.TimeLayout),
 		})
 	}
 	return &manga.MangaListResponse{Mangas: mangaList}, nil
-}	
+}
 
 func (g *GRPCMangaService) GetMangaDetail(ctx context.Context, req *manga.MangaDetailRequest) (*manga.MangaDetailResponse, error) {
 	mangaRepo := repository_impl.NewMangaRepository(g.db)
@@ -52,13 +52,15 @@ func (g *GRPCMangaService) GetMangaDetail(ctx context.Context, req *manga.MangaD
 	}
 	return &manga.MangaDetailResponse{
 		Manga: &manga.Manga{
-			Id: mangaDetail.ID,
-			Title: mangaDetail.Title,
-			Author: mangaDetail.Author,
+			Id:            mangaDetail.ID,
+			Title:         mangaDetail.Title,
+			Author:        mangaDetail.Author,
 			TotalChapters: int32(mangaDetail.TotalChapters),
-			Description: mangaDetail.Description,
-			CoverUrl: mangaDetail.CoverURL,
-			Status: string(mangaDetail.Status),
+			Description:   mangaDetail.Description,
+			CoverUrl:      mangaDetail.CoverURL,
+			Status:        string(mangaDetail.Status),
+			CreatedAt:     mangaDetail.CreatedAt.Format(utils.TimeLayout),
+			UpdatedAt:     mangaDetail.UpdatedAt.Format(utils.TimeLayout),
 		},
 	}, nil
 }
@@ -69,17 +71,19 @@ func (g *GRPCMangaService) GetMangaChapters(ctx context.Context, req *manga.Mang
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("mangaChapters: ", mangaChapters)
+
 	var chapterList []*manga.Chapter
 	for _, item := range mangaChapters {
 		chapterList = append(chapterList, &manga.Chapter{
-			Id: item.ID,
-			Title: item.Title,
+			Id:            item.ID,
+			Title:         item.Title,
 			ChapterNumber: int32(item.ChapterNumber),
-			PagesData: item.PagesData,
+			PagesData:     item.PagesData,
+			CreatedAt:     item.CreatedAt.Format(utils.TimeLayout),
+			UpdatedAt:     item.UpdatedAt.Format(utils.TimeLayout),
 		})
 	}
 	return &manga.MangaChaptersResponse{
 		Chapters: chapterList,
-	}, nil	
-}	
+	}, nil
+}

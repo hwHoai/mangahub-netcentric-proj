@@ -293,6 +293,134 @@ func (x *UpdateSessionResponse) GetUpdatedAt() string {
 	return ""
 }
 
+type GetSessionByRefreshTokenRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RefreshToken  string                 `protobuf:"bytes,1,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSessionByRefreshTokenRequest) Reset() {
+	*x = GetSessionByRefreshTokenRequest{}
+	mi := &file_proto_session_session_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSessionByRefreshTokenRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSessionByRefreshTokenRequest) ProtoMessage() {}
+
+func (x *GetSessionByRefreshTokenRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_session_session_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSessionByRefreshTokenRequest.ProtoReflect.Descriptor instead.
+func (*GetSessionByRefreshTokenRequest) Descriptor() ([]byte, []int) {
+	return file_proto_session_session_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *GetSessionByRefreshTokenRequest) GetRefreshToken() string {
+	if x != nil {
+		return x.RefreshToken
+	}
+	return ""
+}
+
+type GetSessionByRefreshTokenResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SessionId     string                 `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	AccessToken   string                 `protobuf:"bytes,3,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	RefreshToken  string                 `protobuf:"bytes,4,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
+	CreatedAt     string                 `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     string                 `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSessionByRefreshTokenResponse) Reset() {
+	*x = GetSessionByRefreshTokenResponse{}
+	mi := &file_proto_session_session_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSessionByRefreshTokenResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSessionByRefreshTokenResponse) ProtoMessage() {}
+
+func (x *GetSessionByRefreshTokenResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_session_session_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSessionByRefreshTokenResponse.ProtoReflect.Descriptor instead.
+func (*GetSessionByRefreshTokenResponse) Descriptor() ([]byte, []int) {
+	return file_proto_session_session_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *GetSessionByRefreshTokenResponse) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *GetSessionByRefreshTokenResponse) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *GetSessionByRefreshTokenResponse) GetAccessToken() string {
+	if x != nil {
+		return x.AccessToken
+	}
+	return ""
+}
+
+func (x *GetSessionByRefreshTokenResponse) GetRefreshToken() string {
+	if x != nil {
+		return x.RefreshToken
+	}
+	return ""
+}
+
+func (x *GetSessionByRefreshTokenResponse) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *GetSessionByRefreshTokenResponse) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
 var File_proto_session_session_proto protoreflect.FileDescriptor
 
 const file_proto_session_session_proto_rawDesc = "" +
@@ -321,10 +449,23 @@ const file_proto_session_session_proto_rawDesc = "" +
 	"\faccess_token\x18\x03 \x01(\tR\vaccessToken\x12#\n" +
 	"\rrefresh_token\x18\x04 \x01(\tR\frefreshToken\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x05 \x01(\tR\tupdatedAt2\xae\x01\n" +
+	"updated_at\x18\x05 \x01(\tR\tupdatedAt\"F\n" +
+	"\x1fGetSessionByRefreshTokenRequest\x12#\n" +
+	"\rrefresh_token\x18\x01 \x01(\tR\frefreshToken\"\xe0\x01\n" +
+	" GetSessionByRefreshTokenResponse\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId\x12!\n" +
+	"\faccess_token\x18\x03 \x01(\tR\vaccessToken\x12#\n" +
+	"\rrefresh_token\x18\x04 \x01(\tR\frefreshToken\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x05 \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\x06 \x01(\tR\tupdatedAt2\x9f\x02\n" +
 	"\x12GRPCSessionService\x12H\n" +
 	"\vSaveSession\x12\x1b.session.SaveSessionRequest\x1a\x1c.session.SaveSessionResponse\x12N\n" +
-	"\rUpdateSession\x12\x1d.session.UpdateSessionRequest\x1a\x1e.session.UpdateSessionResponseB,Z*github.com/manga_hub/proto/session;sessionb\x06proto3"
+	"\rUpdateSession\x12\x1d.session.UpdateSessionRequest\x1a\x1e.session.UpdateSessionResponse\x12o\n" +
+	"\x18GetSessionByRefreshToken\x12(.session.GetSessionByRefreshTokenRequest\x1a).session.GetSessionByRefreshTokenResponseB,Z*github.com/manga_hub/proto/session;sessionb\x06proto3"
 
 var (
 	file_proto_session_session_proto_rawDescOnce sync.Once
@@ -338,20 +479,24 @@ func file_proto_session_session_proto_rawDescGZIP() []byte {
 	return file_proto_session_session_proto_rawDescData
 }
 
-var file_proto_session_session_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_proto_session_session_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_proto_session_session_proto_goTypes = []any{
-	(*SaveSessionRequest)(nil),    // 0: session.SaveSessionRequest
-	(*SaveSessionResponse)(nil),   // 1: session.SaveSessionResponse
-	(*UpdateSessionRequest)(nil),  // 2: session.UpdateSessionRequest
-	(*UpdateSessionResponse)(nil), // 3: session.UpdateSessionResponse
+	(*SaveSessionRequest)(nil),               // 0: session.SaveSessionRequest
+	(*SaveSessionResponse)(nil),              // 1: session.SaveSessionResponse
+	(*UpdateSessionRequest)(nil),             // 2: session.UpdateSessionRequest
+	(*UpdateSessionResponse)(nil),            // 3: session.UpdateSessionResponse
+	(*GetSessionByRefreshTokenRequest)(nil),  // 4: session.GetSessionByRefreshTokenRequest
+	(*GetSessionByRefreshTokenResponse)(nil), // 5: session.GetSessionByRefreshTokenResponse
 }
 var file_proto_session_session_proto_depIdxs = []int32{
 	0, // 0: session.GRPCSessionService.SaveSession:input_type -> session.SaveSessionRequest
 	2, // 1: session.GRPCSessionService.UpdateSession:input_type -> session.UpdateSessionRequest
-	1, // 2: session.GRPCSessionService.SaveSession:output_type -> session.SaveSessionResponse
-	3, // 3: session.GRPCSessionService.UpdateSession:output_type -> session.UpdateSessionResponse
-	2, // [2:4] is the sub-list for method output_type
-	0, // [0:2] is the sub-list for method input_type
+	4, // 2: session.GRPCSessionService.GetSessionByRefreshToken:input_type -> session.GetSessionByRefreshTokenRequest
+	1, // 3: session.GRPCSessionService.SaveSession:output_type -> session.SaveSessionResponse
+	3, // 4: session.GRPCSessionService.UpdateSession:output_type -> session.UpdateSessionResponse
+	5, // 5: session.GRPCSessionService.GetSessionByRefreshToken:output_type -> session.GetSessionByRefreshTokenResponse
+	3, // [3:6] is the sub-list for method output_type
+	0, // [0:3] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -368,7 +513,7 @@ func file_proto_session_session_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_session_session_proto_rawDesc), len(file_proto_session_session_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

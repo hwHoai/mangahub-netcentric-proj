@@ -6,6 +6,7 @@ import (
 	"mangahub/internal/grpc"
 	"mangahub/pkg/models"
 	"mangahub/pkg/models/enums"
+	"mangahub/pkg/utils"
 	repository_impl "mangahub/pkg/repository/impl"
 	manga "mangahub/proto/manga"
 	"mangahub/proto/user_manga"
@@ -43,7 +44,7 @@ func (s *GRPCUserMangaService) FollowManga(ctx context.Context, req *user_manga.
 	return &user_manga.FollowMangaResponse{
 		UserId:    follower.UserModelID,
 		MangaId:   follower.MangaModelID,
-		CreatedAt: follower.CreatedAt.Format("2006-01-02 15:04:05"),
+		CreatedAt: follower.CreatedAt.Format(utils.TimeLayout),
 	}, nil
 }
 
@@ -84,6 +85,8 @@ func (s *GRPCUserMangaService) GetFollowingMangas(ctx context.Context, req *user
 			Description:   m.Description,
 			CoverUrl:      m.CoverURL,
 			Status:        string(m.Status),
+			CreatedAt:     m.CreatedAt.Format(utils.TimeLayout),
+			UpdatedAt:     m.UpdatedAt.Format(utils.TimeLayout),
 		})
 	}
 
@@ -123,6 +126,43 @@ func (s *GRPCUserMangaService) StoreReadingProgress(ctx context.Context, req *us
 		MangaId:        savedProgress.MangaID,
 		Status:         string(savedProgress.Status),
 		CurrentChapter: int32(savedProgress.CurrentChapter),
-		UpdatedAt:      savedProgress.UpdatedAt.Format("2006-01-02 15:04:05"),
+		UpdatedAt:      savedProgress.UpdatedAt.Format(utils.TimeLayout),
+		CreatedAt:      savedProgress.CreatedAt.Format(utils.TimeLayout),
+	}, nil
+}
+func (s *GRPCUserMangaService) GetReadingHistory(ctx context.Context, req *user_manga.GetReadingHistoryRequest) (*user_manga.GetReadingHistoryResponse, error) {
+	if req.UserId == "" {
+		return nil, fmt.Errorf("user_id is required")
+	}
+
+	readingProgressRepo := repository_impl.NewReadingProgressRepository(s.db)
+	history, err := readingProgressRepo.GetReadingHistory(req.UserId, int(req.Limit), int(req.Offset))
+	if err != nil {
+		return nil, fmt.Errorf("failed to get reading history: %w", err)
+	}
+
+	var historyItems []*user_manga.ReadingHistoryItem
+	for _, item := range history {
+		historyItems = append(historyItems, &user_manga.ReadingHistoryItem{
+			Manga: &manga.Manga{
+				Id:            item.Manga.ID,
+				Title:         item.Manga.Title,
+				Author:        item.Manga.Author,
+				TotalChapters: int32(item.Manga.TotalChapters),
+				Description:   item.Manga.Description,
+				CoverUrl:      item.Manga.CoverURL,
+				Status:        string(item.Manga.Status),
+				CreatedAt:     item.Manga.CreatedAt.Format(utils.TimeLayout),
+				UpdatedAt:     item.Manga.UpdatedAt.Format(utils.TimeLayout),
+			},
+			Status:         string(item.Status),
+			CurrentChapter: int32(item.CurrentChapter),
+			UpdatedAt:      item.UpdatedAt.Format(utils.TimeLayout),
+			CreatedAt:      item.CreatedAt.Format(utils.TimeLayout),
+		})
+	}
+
+	return &user_manga.GetReadingHistoryResponse{
+		History: historyItems,
 	}, nil
 }

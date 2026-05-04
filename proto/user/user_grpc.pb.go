@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	GRPCUserService_GetUserModelByUsername_FullMethodName = "/user.GRPCUserService/GetUserModelByUsername"
 	GRPCUserService_CreateNewUser_FullMethodName          = "/user.GRPCUserService/CreateNewUser"
+	GRPCUserService_GetUserByID_FullMethodName            = "/user.GRPCUserService/GetUserByID"
 )
 
 // GRPCUserServiceClient is the client API for GRPCUserService service.
@@ -33,6 +34,8 @@ type GRPCUserServiceClient interface {
 	GetUserModelByUsername(ctx context.Context, in *GetUserModelByUsernameRequest, opts ...grpc.CallOption) (*GetUserModelByUsernameResponse, error)
 	// CreateNewUser creates a new user account.
 	CreateNewUser(ctx context.Context, in *CreateNewUserRequest, opts ...grpc.CallOption) (*CreateNewUserResponse, error)
+	// GetUserByID retrieves user information based on the provided user ID.
+	GetUserByID(ctx context.Context, in *GetUserByIDRequest, opts ...grpc.CallOption) (*GetUserByIDResponse, error)
 }
 
 type gRPCUserServiceClient struct {
@@ -63,6 +66,16 @@ func (c *gRPCUserServiceClient) CreateNewUser(ctx context.Context, in *CreateNew
 	return out, nil
 }
 
+func (c *gRPCUserServiceClient) GetUserByID(ctx context.Context, in *GetUserByIDRequest, opts ...grpc.CallOption) (*GetUserByIDResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetUserByIDResponse)
+	err := c.cc.Invoke(ctx, GRPCUserService_GetUserByID_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GRPCUserServiceServer is the server API for GRPCUserService service.
 // All implementations must embed UnimplementedGRPCUserServiceServer
 // for forward compatibility.
@@ -73,6 +86,8 @@ type GRPCUserServiceServer interface {
 	GetUserModelByUsername(context.Context, *GetUserModelByUsernameRequest) (*GetUserModelByUsernameResponse, error)
 	// CreateNewUser creates a new user account.
 	CreateNewUser(context.Context, *CreateNewUserRequest) (*CreateNewUserResponse, error)
+	// GetUserByID retrieves user information based on the provided user ID.
+	GetUserByID(context.Context, *GetUserByIDRequest) (*GetUserByIDResponse, error)
 	mustEmbedUnimplementedGRPCUserServiceServer()
 }
 
@@ -88,6 +103,9 @@ func (UnimplementedGRPCUserServiceServer) GetUserModelByUsername(context.Context
 }
 func (UnimplementedGRPCUserServiceServer) CreateNewUser(context.Context, *CreateNewUserRequest) (*CreateNewUserResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateNewUser not implemented")
+}
+func (UnimplementedGRPCUserServiceServer) GetUserByID(context.Context, *GetUserByIDRequest) (*GetUserByIDResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetUserByID not implemented")
 }
 func (UnimplementedGRPCUserServiceServer) mustEmbedUnimplementedGRPCUserServiceServer() {}
 func (UnimplementedGRPCUserServiceServer) testEmbeddedByValue()                         {}
@@ -146,6 +164,24 @@ func _GRPCUserService_CreateNewUser_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GRPCUserService_GetUserByID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserByIDRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GRPCUserServiceServer).GetUserByID(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GRPCUserService_GetUserByID_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GRPCUserServiceServer).GetUserByID(ctx, req.(*GetUserByIDRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // GRPCUserService_ServiceDesc is the grpc.ServiceDesc for GRPCUserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -160,6 +196,10 @@ var GRPCUserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateNewUser",
 			Handler:    _GRPCUserService_CreateNewUser_Handler,
+		},
+		{
+			MethodName: "GetUserByID",
+			Handler:    _GRPCUserService_GetUserByID_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

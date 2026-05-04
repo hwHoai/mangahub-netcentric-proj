@@ -94,3 +94,26 @@ func (uc *UserMangaController) StoreReadingProgress(c *gin.Context) {
 		"data":    progress,
 	})
 }
+// GET /api/v1/user/history
+func (uc *UserMangaController) GetReadingHistory(c *gin.Context) {
+	userID := c.GetString("user_id")
+	if userID == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: user_id is empty"})
+		return
+	}
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+
+	service := user_services_impl.NewUserMangaService(uc.grpcUserMangaClient)
+
+	history, err := service.GetReadingHistory(userID, limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Reading history retrieved",
+		"data":    history,
+	})
+}

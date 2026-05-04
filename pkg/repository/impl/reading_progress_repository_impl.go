@@ -29,6 +29,20 @@ func (r *ReadingProgressRepositoryImpl) UpsertReadingProgress(progress *models.R
 	return progress, nil
 }
 
+func (r *ReadingProgressRepositoryImpl) GetReadingHistory(userID string, limit, offset int) ([]models.ReadingProgressModel, error) {
+	var history []models.ReadingProgressModel
+	err := r.db.Preload("Manga").
+		Where("user_id = ?", userID).
+		Order("updated_at DESC").
+		Limit(limit).
+		Offset(offset).
+		Find(&history).Error
+	if err != nil {
+		return nil, err
+	}
+	return history, nil
+}
+
 func (r *ReadingProgressRepositoryImpl) GetReadingProgress(userID string, mangaID string) (*models.ReadingProgressModel, error) {
 	var progress models.ReadingProgressModel
 	err := r.db.Where("user_id = ? AND manga_id = ?", userID, mangaID).First(&progress).Error

@@ -33,3 +33,12 @@ func (r *UserRepositoryImpl) CreateUser(user *models.UserModel) (*models.UserMod
 	}
 	return user, nil
 }
+
+func (r *UserRepositoryImpl) GetUserByID(id string) (*models.UserModel, error) {
+	var userModel models.UserModel
+	result := r.db.Where("id = ?", id).First(&userModel)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &userModel, nil
+}

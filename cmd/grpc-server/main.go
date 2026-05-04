@@ -6,6 +6,7 @@ import (
 	grpc_services_impl "mangahub/internal/grpc/impl"
 	dbImpl "mangahub/pkg/database/impl"
 	"mangahub/pkg/seeder"
+	"mangahub/proto/chapter"
 	"mangahub/proto/manga"
 	"mangahub/proto/session"
 	"mangahub/proto/user"
@@ -46,17 +47,7 @@ func main() {
 	grpcServer := grpc.NewServer()
 
 	// 4. Register services
-	userService := grpc_services_impl.NewGRPCUserService(dbConn)
-	user.RegisterGRPCUserServiceServer(grpcServer, userService)
-
-	sessionService := grpc_services_impl.NewGRPCSessionService(dbConn)
-	session.RegisterGRPCSessionServiceServer(grpcServer, sessionService)
-
-	mangaService := grpc_services_impl.NewGRPCMangaService(dbConn)
-	manga.RegisterGRPCMangaServiceServer(grpcServer, mangaService)
-
-	userMangaService := grpc_services_impl.NewGRPCUserMangaService(dbConn)
-	user_manga.RegisterGRPCUserMangaServiceServer(grpcServer, userMangaService)
+	registerServices(grpcServer, dbConn)
 
 	// 5. Listen for connections
 	listener, err := net.Listen("tcp", port)
@@ -94,4 +85,22 @@ func seedData(db *gorm.DB) {
 	}
 
 	log.Println("=== Manga Data Seeding Completed ===")
+}
+
+// registerServices registers all gRPC services with the server.
+func registerServices(grpcServer *grpc.Server, db *gorm.DB) {
+	userService := grpc_services_impl.NewGRPCUserService(db)
+	user.RegisterGRPCUserServiceServer(grpcServer, userService)
+
+	sessionService := grpc_services_impl.NewGRPCSessionService(db)
+	session.RegisterGRPCSessionServiceServer(grpcServer, sessionService)
+
+	mangaService := grpc_services_impl.NewGRPCMangaService(db)
+	manga.RegisterGRPCMangaServiceServer(grpcServer, mangaService)
+
+	userMangaService := grpc_services_impl.NewGRPCUserMangaService(db)
+	user_manga.RegisterGRPCUserMangaServiceServer(grpcServer, userMangaService)
+
+	chapterService := grpc_services_impl.NewGRPCChapterService(db)
+	chapter.RegisterGRPCChapterServiceServer(grpcServer, chapterService)
 }

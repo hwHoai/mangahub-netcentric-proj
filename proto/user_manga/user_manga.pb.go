@@ -396,6 +396,7 @@ type StoreReadingProgressResponse struct {
 	Status         string                 `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
 	CurrentChapter int32                  `protobuf:"varint,4,opt,name=current_chapter,json=currentChapter,proto3" json:"current_chapter,omitempty"`
 	UpdatedAt      string                 `protobuf:"bytes,5,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	CreatedAt      string                 `protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -465,6 +466,194 @@ func (x *StoreReadingProgressResponse) GetUpdatedAt() string {
 	return ""
 }
 
+func (x *StoreReadingProgressResponse) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+// Get Reading History
+type GetReadingHistoryRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Limit         int32                  `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
+	Offset        int32                  `protobuf:"varint,3,opt,name=offset,proto3" json:"offset,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetReadingHistoryRequest) Reset() {
+	*x = GetReadingHistoryRequest{}
+	mi := &file_proto_user_manga_user_manga_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetReadingHistoryRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetReadingHistoryRequest) ProtoMessage() {}
+
+func (x *GetReadingHistoryRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_user_manga_user_manga_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetReadingHistoryRequest.ProtoReflect.Descriptor instead.
+func (*GetReadingHistoryRequest) Descriptor() ([]byte, []int) {
+	return file_proto_user_manga_user_manga_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *GetReadingHistoryRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *GetReadingHistoryRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+func (x *GetReadingHistoryRequest) GetOffset() int32 {
+	if x != nil {
+		return x.Offset
+	}
+	return 0
+}
+
+type ReadingHistoryItem struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Manga          *manga.Manga           `protobuf:"bytes,1,opt,name=manga,proto3" json:"manga,omitempty"`
+	Status         string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
+	CurrentChapter int32                  `protobuf:"varint,3,opt,name=current_chapter,json=currentChapter,proto3" json:"current_chapter,omitempty"`
+	UpdatedAt      string                 `protobuf:"bytes,4,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	CreatedAt      string                 `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *ReadingHistoryItem) Reset() {
+	*x = ReadingHistoryItem{}
+	mi := &file_proto_user_manga_user_manga_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReadingHistoryItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReadingHistoryItem) ProtoMessage() {}
+
+func (x *ReadingHistoryItem) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_user_manga_user_manga_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReadingHistoryItem.ProtoReflect.Descriptor instead.
+func (*ReadingHistoryItem) Descriptor() ([]byte, []int) {
+	return file_proto_user_manga_user_manga_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *ReadingHistoryItem) GetManga() *manga.Manga {
+	if x != nil {
+		return x.Manga
+	}
+	return nil
+}
+
+func (x *ReadingHistoryItem) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *ReadingHistoryItem) GetCurrentChapter() int32 {
+	if x != nil {
+		return x.CurrentChapter
+	}
+	return 0
+}
+
+func (x *ReadingHistoryItem) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
+func (x *ReadingHistoryItem) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+type GetReadingHistoryResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	History       []*ReadingHistoryItem  `protobuf:"bytes,1,rep,name=history,proto3" json:"history,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetReadingHistoryResponse) Reset() {
+	*x = GetReadingHistoryResponse{}
+	mi := &file_proto_user_manga_user_manga_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetReadingHistoryResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetReadingHistoryResponse) ProtoMessage() {}
+
+func (x *GetReadingHistoryResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_user_manga_user_manga_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetReadingHistoryResponse.ProtoReflect.Descriptor instead.
+func (*GetReadingHistoryResponse) Descriptor() ([]byte, []int) {
+	return file_proto_user_manga_user_manga_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *GetReadingHistoryResponse) GetHistory() []*ReadingHistoryItem {
+	if x != nil {
+		return x.History
+	}
+	return nil
+}
+
 var File_proto_user_manga_user_manga_proto protoreflect.FileDescriptor
 
 const file_proto_user_manga_user_manga_proto_rawDesc = "" +
@@ -493,19 +682,36 @@ const file_proto_user_manga_user_manga_proto_rawDesc = "" +
 	"\x1bStoreReadingProgressRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1d\n" +
 	"\n" +
-	"chapter_id\x18\x02 \x01(\tR\tchapterId\"\xb2\x01\n" +
+	"chapter_id\x18\x02 \x01(\tR\tchapterId\"\xd1\x01\n" +
 	"\x1cStoreReadingProgressResponse\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x19\n" +
 	"\bmanga_id\x18\x02 \x01(\tR\amangaId\x12\x16\n" +
 	"\x06status\x18\x03 \x01(\tR\x06status\x12'\n" +
 	"\x0fcurrent_chapter\x18\x04 \x01(\x05R\x0ecurrentChapter\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x05 \x01(\tR\tupdatedAt2\x8c\x03\n" +
+	"updated_at\x18\x05 \x01(\tR\tupdatedAt\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x06 \x01(\tR\tcreatedAt\"a\n" +
+	"\x18GetReadingHistoryRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x14\n" +
+	"\x05limit\x18\x02 \x01(\x05R\x05limit\x12\x16\n" +
+	"\x06offset\x18\x03 \x01(\x05R\x06offset\"\xb7\x01\n" +
+	"\x12ReadingHistoryItem\x12\"\n" +
+	"\x05manga\x18\x01 \x01(\v2\f.manga.MangaR\x05manga\x12\x16\n" +
+	"\x06status\x18\x02 \x01(\tR\x06status\x12'\n" +
+	"\x0fcurrent_chapter\x18\x03 \x01(\x05R\x0ecurrentChapter\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\x04 \x01(\tR\tupdatedAt\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x05 \x01(\tR\tcreatedAt\"U\n" +
+	"\x19GetReadingHistoryResponse\x128\n" +
+	"\ahistory\x18\x01 \x03(\v2\x1e.user_manga.ReadingHistoryItemR\ahistory2\xee\x03\n" +
 	"\x14GRPCUserMangaService\x12N\n" +
 	"\vFollowManga\x12\x1e.user_manga.FollowMangaRequest\x1a\x1f.user_manga.FollowMangaResponse\x12T\n" +
 	"\rUnfollowManga\x12 .user_manga.UnfollowMangaRequest\x1a!.user_manga.UnfollowMangaResponse\x12c\n" +
 	"\x12GetFollowingMangas\x12%.user_manga.GetFollowingMangasRequest\x1a&.user_manga.GetFollowingMangasResponse\x12i\n" +
-	"\x14StoreReadingProgress\x12'.user_manga.StoreReadingProgressRequest\x1a(.user_manga.StoreReadingProgressResponseB&Z$mangahub/proto/user_manga;user_mangab\x06proto3"
+	"\x14StoreReadingProgress\x12'.user_manga.StoreReadingProgressRequest\x1a(.user_manga.StoreReadingProgressResponse\x12`\n" +
+	"\x11GetReadingHistory\x12$.user_manga.GetReadingHistoryRequest\x1a%.user_manga.GetReadingHistoryResponseB&Z$mangahub/proto/user_manga;user_mangab\x06proto3"
 
 var (
 	file_proto_user_manga_user_manga_proto_rawDescOnce sync.Once
@@ -519,7 +725,7 @@ func file_proto_user_manga_user_manga_proto_rawDescGZIP() []byte {
 	return file_proto_user_manga_user_manga_proto_rawDescData
 }
 
-var file_proto_user_manga_user_manga_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_proto_user_manga_user_manga_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_proto_user_manga_user_manga_proto_goTypes = []any{
 	(*FollowMangaRequest)(nil),           // 0: user_manga.FollowMangaRequest
 	(*FollowMangaResponse)(nil),          // 1: user_manga.FollowMangaResponse
@@ -529,23 +735,30 @@ var file_proto_user_manga_user_manga_proto_goTypes = []any{
 	(*GetFollowingMangasResponse)(nil),   // 5: user_manga.GetFollowingMangasResponse
 	(*StoreReadingProgressRequest)(nil),  // 6: user_manga.StoreReadingProgressRequest
 	(*StoreReadingProgressResponse)(nil), // 7: user_manga.StoreReadingProgressResponse
-	(*manga.Manga)(nil),                  // 8: manga.Manga
+	(*GetReadingHistoryRequest)(nil),     // 8: user_manga.GetReadingHistoryRequest
+	(*ReadingHistoryItem)(nil),           // 9: user_manga.ReadingHistoryItem
+	(*GetReadingHistoryResponse)(nil),    // 10: user_manga.GetReadingHistoryResponse
+	(*manga.Manga)(nil),                  // 11: manga.Manga
 }
 var file_proto_user_manga_user_manga_proto_depIdxs = []int32{
-	8, // 0: user_manga.GetFollowingMangasResponse.mangas:type_name -> manga.Manga
-	0, // 1: user_manga.GRPCUserMangaService.FollowManga:input_type -> user_manga.FollowMangaRequest
-	2, // 2: user_manga.GRPCUserMangaService.UnfollowManga:input_type -> user_manga.UnfollowMangaRequest
-	4, // 3: user_manga.GRPCUserMangaService.GetFollowingMangas:input_type -> user_manga.GetFollowingMangasRequest
-	6, // 4: user_manga.GRPCUserMangaService.StoreReadingProgress:input_type -> user_manga.StoreReadingProgressRequest
-	1, // 5: user_manga.GRPCUserMangaService.FollowManga:output_type -> user_manga.FollowMangaResponse
-	3, // 6: user_manga.GRPCUserMangaService.UnfollowManga:output_type -> user_manga.UnfollowMangaResponse
-	5, // 7: user_manga.GRPCUserMangaService.GetFollowingMangas:output_type -> user_manga.GetFollowingMangasResponse
-	7, // 8: user_manga.GRPCUserMangaService.StoreReadingProgress:output_type -> user_manga.StoreReadingProgressResponse
-	5, // [5:9] is the sub-list for method output_type
-	1, // [1:5] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	11, // 0: user_manga.GetFollowingMangasResponse.mangas:type_name -> manga.Manga
+	11, // 1: user_manga.ReadingHistoryItem.manga:type_name -> manga.Manga
+	9,  // 2: user_manga.GetReadingHistoryResponse.history:type_name -> user_manga.ReadingHistoryItem
+	0,  // 3: user_manga.GRPCUserMangaService.FollowManga:input_type -> user_manga.FollowMangaRequest
+	2,  // 4: user_manga.GRPCUserMangaService.UnfollowManga:input_type -> user_manga.UnfollowMangaRequest
+	4,  // 5: user_manga.GRPCUserMangaService.GetFollowingMangas:input_type -> user_manga.GetFollowingMangasRequest
+	6,  // 6: user_manga.GRPCUserMangaService.StoreReadingProgress:input_type -> user_manga.StoreReadingProgressRequest
+	8,  // 7: user_manga.GRPCUserMangaService.GetReadingHistory:input_type -> user_manga.GetReadingHistoryRequest
+	1,  // 8: user_manga.GRPCUserMangaService.FollowManga:output_type -> user_manga.FollowMangaResponse
+	3,  // 9: user_manga.GRPCUserMangaService.UnfollowManga:output_type -> user_manga.UnfollowMangaResponse
+	5,  // 10: user_manga.GRPCUserMangaService.GetFollowingMangas:output_type -> user_manga.GetFollowingMangasResponse
+	7,  // 11: user_manga.GRPCUserMangaService.StoreReadingProgress:output_type -> user_manga.StoreReadingProgressResponse
+	10, // 12: user_manga.GRPCUserMangaService.GetReadingHistory:output_type -> user_manga.GetReadingHistoryResponse
+	8,  // [8:13] is the sub-list for method output_type
+	3,  // [3:8] is the sub-list for method input_type
+	3,  // [3:3] is the sub-list for extension type_name
+	3,  // [3:3] is the sub-list for extension extendee
+	0,  // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_proto_user_manga_user_manga_proto_init() }
@@ -559,7 +772,7 @@ func file_proto_user_manga_user_manga_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_user_manga_user_manga_proto_rawDesc), len(file_proto_user_manga_user_manga_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

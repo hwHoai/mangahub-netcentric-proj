@@ -2,11 +2,12 @@ package manga_services_impl
 
 import (
 	"context"
-	"fmt"
 	services "mangahub/internal/manga"
 	"mangahub/pkg/models"
 	"mangahub/pkg/models/enums"
+	"mangahub/pkg/utils"
 	manga "mangahub/proto/manga"
+	"time"
 )
 
 type MangaServiceImpl struct {
@@ -21,24 +22,33 @@ func NewMangaService(grpcMangaClient manga.GRPCMangaServiceClient) services.Mang
 
 func (s *MangaServiceImpl) ListMangas(limit, offset int32) ([]models.MangaModel, error) {
 	grpcRequest := &manga.MangaListRequest{
-		Limit: limit,
+		Limit:  limit,
 		Offset: offset,
 	}
 	grpcResponse, err := s.grpcMangaClient.GetMangas(context.Background(), grpcRequest)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	var mangas []models.MangaModel
-	for _, manga := range grpcResponse.Mangas {
+	for _, m := range grpcResponse.Mangas {
+		createdAt, _ := time.Parse(utils.TimeLayout, m.CreatedAt)
+		updatedAt, _ := time.Parse(utils.TimeLayout, m.UpdatedAt)
+
 		mangas = append(mangas, models.MangaModel{
-			ID:        manga.Id,
-			Title:     manga.Title,
-			Author: manga.Author,
-			Description: manga.Description,
-			TotalChapters: int(manga.TotalChapters),
-			Status: enums.MangaStatus(manga.Status),
-			CoverURL: manga.CoverUrl,
+			ID:            m.Id,
+			Title:         m.Title,
+			Author:        m.Author,
+			Description:   m.Description,
+			TotalChapters: int(m.TotalChapters),
+			Status:        enums.MangaStatus(m.Status),
+			CoverURL:      m.CoverUrl,
+			BaseModel: models.BaseModel{
+				CreatedAt: createdAt,
+			},
+			MetaUpdateModel: models.MetaUpdateModel{
+				UpdatedAt: updatedAt,
+			},
 		})
 	}
 	return mangas, nil
@@ -52,16 +62,25 @@ func (s *MangaServiceImpl) GetMangaDetail(mangaID string) (*models.MangaModel, e
 	if err != nil {
 		return nil, err
 	}
-	
+
+	createdAt, _ := time.Parse(utils.TimeLayout, grpcResponse.Manga.CreatedAt)
+	updatedAt, _ := time.Parse(utils.TimeLayout, grpcResponse.Manga.UpdatedAt)
+
 	return &models.MangaModel{
-		ID:        grpcResponse.Manga.Id,
-		Title:     grpcResponse.Manga.Title,
-		Author: grpcResponse.Manga.Author,
-		Description: grpcResponse.Manga.Description,
+		ID:            grpcResponse.Manga.Id,
+		Title:         grpcResponse.Manga.Title,
+		Author:        grpcResponse.Manga.Author,
+		Description:   grpcResponse.Manga.Description,
 		TotalChapters: int(grpcResponse.Manga.TotalChapters),
-		Status: enums.MangaStatus(grpcResponse.Manga.Status),
-		CoverURL: grpcResponse.Manga.CoverUrl,
-		}, nil
+		Status:        enums.MangaStatus(grpcResponse.Manga.Status),
+		CoverURL:      grpcResponse.Manga.CoverUrl,
+		BaseModel: models.BaseModel{
+			CreatedAt: createdAt,
+		},
+		MetaUpdateModel: models.MetaUpdateModel{
+			UpdatedAt: updatedAt,
+		},
+	}, nil
 }
 
 func (s *MangaServiceImpl) GetMangaChapters(mangaID string) ([]models.ChapterModel, error) {
@@ -73,16 +92,23 @@ func (s *MangaServiceImpl) GetMangaChapters(mangaID string) ([]models.ChapterMod
 		return nil, err
 	}
 
-	fmt.Println(grpcResponse.Chapters[0].PagesData)
-	
 	var chapters []models.ChapterModel
-	for _, chapter := range grpcResponse.Chapters {
+	for _, c := range grpcResponse.Chapters {
+		createdAt, _ := time.Parse(utils.TimeLayout, c.CreatedAt)
+		updatedAt, _ := time.Parse(utils.TimeLayout, c.UpdatedAt)
+
 		chapters = append(chapters, models.ChapterModel{
-			ID:        chapter.Id,
-			Title:     chapter.Title,
-			ChapterNumber: float64(chapter.ChapterNumber),
-			PagesData: chapter.PagesData,
-			MangaID: mangaID,
+			ID:            c.Id,
+			Title:         c.Title,
+			ChapterNumber: float64(c.ChapterNumber),
+			PagesData:     c.PagesData,
+			MangaID:       mangaID,
+			BaseModel: models.BaseModel{
+				CreatedAt: createdAt,
+			},
+			MetaUpdateModel: models.MetaUpdateModel{
+				UpdatedAt: updatedAt,
+			},
 		})
 	}
 	return chapters, nil

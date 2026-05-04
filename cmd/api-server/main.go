@@ -32,7 +32,7 @@ func main() {
 	r.Use(gin.Logger())
 
 	// 4. Generate JWT key pair once at startup and keep private key in memory only for auth.
-	jwtService := auth_service_impl.NewJWTService()
+	jwtService := auth_service_impl.NewJWTService(nil)
 	privateKey, publicKey, err := jwtService.CreateRSAKeyPair(2048)
 	if err != nil {
 		log.Fatalf("failed to create JWT key pair: %v", err)

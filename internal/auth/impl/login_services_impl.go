@@ -59,7 +59,7 @@ func (s *LoginServiceImpl) LoginByUsername(request *dto.LoginByUsernameRequest) 
 		}
 	}
 
-	jwtService := NewJWTService()
+	jwtService := NewJWTService(s.GRPCSessionClient)
 	accessToken, err := jwtService.SignJWTToken(grpcResponse.UserId, auth.AccessTokenTTL, privateKey)
 	if err != nil {
 		return nil, dto.ExceptionDTO{

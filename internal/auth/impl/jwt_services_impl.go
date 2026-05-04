@@ -1,6 +1,7 @@
 package auth_service_impl
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -11,16 +12,22 @@ import (
 	"time"
 
 	"mangahub/internal/auth"
+	"mangahub/pkg/dto"
+	"mangahub/proto/session"
 
 	jwt "github.com/golang-jwt/jwt/v5"
 )
 
-type JWTServiceImpl struct{}
+type JWTServiceImpl struct {
+	GRPCSessionClient session.GRPCSessionServiceClient
+}
 
 var _ auth.JWTService = (*JWTServiceImpl)(nil)
 
-func NewJWTService() *JWTServiceImpl {
-	return &JWTServiceImpl{}
+func NewJWTService(grpcSessionClient session.GRPCSessionServiceClient) *JWTServiceImpl {
+	return &JWTServiceImpl{
+		GRPCSessionClient: grpcSessionClient,
+	}
 }
 
 func (s *JWTServiceImpl) CreateRSAKeyPair(bits int) (*rsa.PrivateKey, *rsa.PublicKey, error) {
@@ -45,9 +52,9 @@ func (s *JWTServiceImpl) SignJWTToken(subject string, expiresIn time.Duration, p
 	}
 	now := time.Now()
 	claims := jwt.MapClaims{
-		"sub":        subject, // User ID
-		"iat":        now.Unix(),
-		"exp":        now.Add(expiresIn).Unix(),
+		"sub": subject, // User ID
+		"iat": now.Unix(),
+		"exp": now.Add(expiresIn).Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
@@ -124,6 +131,85 @@ func (s *JWTServiceImpl) ParsePublicKeyPEM(publicKeyPEM string) (*rsa.PublicKey,
 	}
 
 	return publicKey, nil
+}
+
+func (s *JWTServiceImpl) RefreshToken(request *dto.RefreshTokenRequest, privateKey *rsa.PrivateKey, publicKey *rsa.PublicKey) (*dto.RefreshTokenResponse, dto.ExceptionDTO) {
+	if request.RefreshToken == "" {
+		return nil, dto.ExceptionDTO{
+			Code:    400,
+			Message: "Refresh token is required",
+		}
+	}
+
+	// 1. Verify the refresh token cryptographically
+	claims, err := s.VerifyJWTToken(request.RefreshToken, publicKey)
+	if err != nil {
+		return nil, dto.ExceptionDTO{
+			Code:    401,
+			Message: "Invalid refresh token",
+		}
+	}
+
+	if s.GRPCSessionClient == nil {
+		return nil, dto.ExceptionDTO{
+			Code:    500,
+			Message: "Session service is unavailable",
+		}
+	}
+
+	// 2. Check if the refresh token exists in the database
+	grpcResponse, err := s.GRPCSessionClient.GetSessionByRefreshToken(context.Background(), &session.GetSessionByRefreshTokenRequest{
+		RefreshToken: request.RefreshToken,
+	})
+	if err != nil {
+		return nil, dto.ExceptionDTO{
+			Code:    401,
+			Message: "Refresh token not found or expired",
+		}
+	}
+
+	// 3. Double check user_id matches claims
+	if grpcResponse.UserId != claims.Subject {
+		return nil, dto.ExceptionDTO{
+			Code:    401,
+			Message: "Invalid refresh token claims",
+		}
+	}
+
+	// 4. Generate new tokens
+	newAccessToken, err := s.SignJWTToken(claims.Subject, auth.AccessTokenTTL, privateKey)
+	if err != nil {
+		return nil, dto.ExceptionDTO{
+			Code:    500,
+			Message: "Failed to generate access token",
+		}
+	}
+
+	newRefreshToken, err := s.SignJWTToken(claims.Subject, auth.RefreshTokenTTL, privateKey)
+	if err != nil {
+		return nil, dto.ExceptionDTO{
+			Code:    500,
+			Message: "Failed to generate refresh token",
+		}
+	}
+
+	// 5. Update session in database
+	_, err = s.GRPCSessionClient.UpdateSession(context.Background(), &session.UpdateSessionRequest{
+		UserId:       claims.Subject,
+		AccessToken:  newAccessToken,
+		RefreshToken: newRefreshToken,
+	})
+	if err != nil {
+		return nil, dto.ExceptionDTO{
+			Code:    500,
+			Message: "Failed to update session in database",
+		}
+	}
+
+	return &dto.RefreshTokenResponse{
+		AccessToken:  newAccessToken,
+		RefreshToken: newRefreshToken,
+	}, dto.ExceptionDTO{}
 }
 
 func numericClaimToInt64(value any) (int64, error) {

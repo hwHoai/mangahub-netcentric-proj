@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"mangahub/internal/grpc"
 	"mangahub/pkg/models"
+	"mangahub/pkg/utils"
 	repository_impl "mangahub/pkg/repository/impl"
 	"mangahub/proto/user"
 
@@ -34,8 +35,8 @@ func (s *GRPCUserService) GetUserModelByUsername(ctx context.Context, req *user.
 	response := &user.GetUserModelByUsernameResponse{
 		UserId:          userModel.ID,
 		Username:        userModel.Username,
-		CreatedAt:       userModel.CreatedAt.Format("2006-01-02 15:04:05"),
-		UpdatedAt:       userModel.UpdatedAt.Format("2006-01-02 15:04:05"),
+		CreatedAt:       userModel.CreatedAt.Format(utils.TimeLayout),
+		UpdatedAt:       userModel.UpdatedAt.Format(utils.TimeLayout),
 		HashedPassword:  userModel.HashedPassword,
 	}
 	return response, nil
@@ -62,10 +63,25 @@ func (s *GRPCUserService) CreateNewUser(ctx context.Context, req *user.CreateNew
 
 	// Map to gRPC response
 	response := &user.CreateNewUserResponse{
-		UserId: savedUser.ID,
-		Username: savedUser.Username,
-		CreatedAt: savedUser.CreatedAt.Format("2006-01-02 15:04:05"),
-		UpdatedAt: savedUser.UpdatedAt.Format("2006-01-02 15:04:05"),
+		UserId:    savedUser.ID,
+		Username:  savedUser.Username,
+		CreatedAt: savedUser.CreatedAt.Format(utils.TimeLayout),
+		UpdatedAt: savedUser.UpdatedAt.Format(utils.TimeLayout),
 	}
 	return response, nil
+}
+
+func (s *GRPCUserService) GetUserByID(ctx context.Context, req *user.GetUserByIDRequest) (*user.GetUserByIDResponse, error) {
+	userRepo := repository_impl.NewUserRepository(s.db)
+	userModel, err := userRepo.GetUserByID(req.UserId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user.GetUserByIDResponse{
+		UserId:    userModel.ID,
+		Username:  userModel.Username,
+		CreatedAt: userModel.CreatedAt.Format(utils.TimeLayout),
+		UpdatedAt: userModel.UpdatedAt.Format(utils.TimeLayout),
+	}, nil
 }

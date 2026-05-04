@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"mangahub/internal/grpc"
 	"mangahub/pkg/models"
+	"mangahub/pkg/utils"
 	repository_impl "mangahub/pkg/repository/impl"
 	"mangahub/proto/session"
 
@@ -46,7 +47,7 @@ func (s *GRPCSessionService) SaveSession(ctx context.Context, req *session.SaveS
 		UserId:       savedSession.UserID,
 		AccessToken:  savedSession.AccessToken,
 		RefreshToken: savedSession.RefreshToken,
-		CreatedAt:    savedSession.CreatedAt.Format("2006-01-02 15:04:05"),
+		CreatedAt:    savedSession.CreatedAt.Format(utils.TimeLayout),
 	}
 	return response, nil
 }
@@ -75,7 +76,7 @@ func (s *GRPCSessionService) UpdateSession(ctx context.Context, req *session.Upd
 				UserId:       savedSession.UserID,
 				AccessToken:  savedSession.AccessToken,
 				RefreshToken: savedSession.RefreshToken,
-				UpdatedAt:    savedSession.UpdatedAt.Format("2006-01-02 15:04:05"),
+				UpdatedAt:    savedSession.UpdatedAt.Format(utils.TimeLayout),
 			}, nil
 		}
 
@@ -87,6 +88,30 @@ func (s *GRPCSessionService) UpdateSession(ctx context.Context, req *session.Upd
 		UserId:       updatedSession.UserID,
 		AccessToken:  updatedSession.AccessToken,
 		RefreshToken: updatedSession.RefreshToken,
-		UpdatedAt:    updatedSession.UpdatedAt.Format("2006-01-02 15:04:05"),
+		UpdatedAt:    updatedSession.UpdatedAt.Format(utils.TimeLayout),
+	}, nil
+}
+func (s *GRPCSessionService) GetSessionByRefreshToken(ctx context.Context, req *session.GetSessionByRefreshTokenRequest) (*session.GetSessionByRefreshTokenResponse, error) {
+	if req == nil {
+		return nil, fmt.Errorf("request is required")
+	}
+
+	if req.RefreshToken == "" {
+		return nil, fmt.Errorf("refresh_token is required")
+	}
+
+	sessionRepo := repository_impl.NewSessionRepository(s.db)
+	sessionModel, err := sessionRepo.GetSessionByRefreshToken(req.RefreshToken)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get session by refresh token: %w", err)
+	}
+
+	return &session.GetSessionByRefreshTokenResponse{
+		SessionId:    sessionModel.ID,
+		UserId:       sessionModel.UserID,
+		AccessToken:  sessionModel.AccessToken,
+		RefreshToken: sessionModel.RefreshToken,
+		CreatedAt:    sessionModel.CreatedAt.Format(utils.TimeLayout),
+		UpdatedAt:    sessionModel.UpdatedAt.Format(utils.TimeLayout),
 	}, nil
 }

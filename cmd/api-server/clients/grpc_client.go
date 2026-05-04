@@ -1,6 +1,7 @@
 package clients
 
 import (
+	"mangahub/proto/chapter"
 	"mangahub/proto/manga"
 	"mangahub/proto/session"
 	"mangahub/proto/user"
@@ -63,5 +64,18 @@ func NewUserMangaGRPCClient() (user_manga.GRPCUserMangaServiceClient, *grpc.Clie
     // return client & connection
     client := user_manga.NewGRPCUserMangaServiceClient(conn)
     return client, conn, nil
+}
+
+func NewChapterGRPCClient() (chapter.GRPCChapterServiceClient, *grpc.ClientConn, error) {
+	// Define gRPC server address
+	target := os.Getenv("SERVER_HOST") + ":" + os.Getenv("GRPC_SERVER_PORT")
+	conn, err := grpc.NewClient(target, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// return client & connection
+	client := chapter.NewGRPCChapterServiceClient(conn)
+	return client, conn, nil
 }
 

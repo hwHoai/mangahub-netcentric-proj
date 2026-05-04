@@ -59,3 +59,12 @@ func (r *SessionRepositoryImpl) GetSessionByUserID(userID string) (*models.Sessi
 	}
 	return &session, nil
 }
+
+func (r *SessionRepositoryImpl) GetSessionByRefreshToken(token string) (*models.SessionModel, error) {
+	var session models.SessionModel
+	result := r.db.Where("refresh_token = ?", token).First(&session)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &session, nil
+}

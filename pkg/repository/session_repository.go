@@ -7,4 +7,5 @@ type SessionRepository interface {
 	UpdateSessionByUserID(userID, accessToken, refreshToken string) (*models.SessionModel, error)
 	GetSessionByAccessToken(token string) (*models.SessionModel, error)
 	GetSessionByUserID(userID string) (*models.SessionModel, error)
+	GetSessionByRefreshToken(token string) (*models.SessionModel, error)
 }

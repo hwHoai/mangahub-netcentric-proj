@@ -72,7 +72,7 @@ func (s *SignupServiceImpl) SignupByUsername(request *dto.SignupByUsernameReques
 	}
 
 	// 3. Initialize JWT service and create RSA key pair for token signing
-	jwtService := NewJWTService()
+	jwtService := NewJWTService(s.GRPCSessionClient)
 	privateKey := s.PrivateKey
 	if privateKey == nil {
 		return nil, dto.ExceptionDTO{

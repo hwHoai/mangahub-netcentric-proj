@@ -18,7 +18,7 @@ type AuthMiddleware struct {
 func NewAuthMiddleware(publicKey *rsa.PublicKey) *AuthMiddleware {
 	return &AuthMiddleware{
 		publicKey:  publicKey,
-		jwtService: auth_service_impl.NewJWTService(),
+		jwtService: auth_service_impl.NewJWTService(nil),
 	}
 }
 

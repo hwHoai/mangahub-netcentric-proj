@@ -19,8 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	GRPCSessionService_SaveSession_FullMethodName   = "/session.GRPCSessionService/SaveSession"
-	GRPCSessionService_UpdateSession_FullMethodName = "/session.GRPCSessionService/UpdateSession"
+	GRPCSessionService_SaveSession_FullMethodName              = "/session.GRPCSessionService/SaveSession"
+	GRPCSessionService_UpdateSession_FullMethodName            = "/session.GRPCSessionService/UpdateSession"
+	GRPCSessionService_GetSessionByRefreshToken_FullMethodName = "/session.GRPCSessionService/GetSessionByRefreshToken"
 )
 
 // GRPCSessionServiceClient is the client API for GRPCSessionService service.
@@ -33,6 +34,8 @@ type GRPCSessionServiceClient interface {
 	SaveSession(ctx context.Context, in *SaveSessionRequest, opts ...grpc.CallOption) (*SaveSessionResponse, error)
 	// UpdateSession updates an existing session for a user.
 	UpdateSession(ctx context.Context, in *UpdateSessionRequest, opts ...grpc.CallOption) (*UpdateSessionResponse, error)
+	// GetSessionByRefreshToken retrieves a session based on the provided refresh token.
+	GetSessionByRefreshToken(ctx context.Context, in *GetSessionByRefreshTokenRequest, opts ...grpc.CallOption) (*GetSessionByRefreshTokenResponse, error)
 }
 
 type gRPCSessionServiceClient struct {
@@ -63,6 +66,16 @@ func (c *gRPCSessionServiceClient) UpdateSession(ctx context.Context, in *Update
 	return out, nil
 }
 
+func (c *gRPCSessionServiceClient) GetSessionByRefreshToken(ctx context.Context, in *GetSessionByRefreshTokenRequest, opts ...grpc.CallOption) (*GetSessionByRefreshTokenResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetSessionByRefreshTokenResponse)
+	err := c.cc.Invoke(ctx, GRPCSessionService_GetSessionByRefreshToken_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GRPCSessionServiceServer is the server API for GRPCSessionService service.
 // All implementations must embed UnimplementedGRPCSessionServiceServer
 // for forward compatibility.
@@ -73,6 +86,8 @@ type GRPCSessionServiceServer interface {
 	SaveSession(context.Context, *SaveSessionRequest) (*SaveSessionResponse, error)
 	// UpdateSession updates an existing session for a user.
 	UpdateSession(context.Context, *UpdateSessionRequest) (*UpdateSessionResponse, error)
+	// GetSessionByRefreshToken retrieves a session based on the provided refresh token.
+	GetSessionByRefreshToken(context.Context, *GetSessionByRefreshTokenRequest) (*GetSessionByRefreshTokenResponse, error)
 	mustEmbedUnimplementedGRPCSessionServiceServer()
 }
 
@@ -88,6 +103,9 @@ func (UnimplementedGRPCSessionServiceServer) SaveSession(context.Context, *SaveS
 }
 func (UnimplementedGRPCSessionServiceServer) UpdateSession(context.Context, *UpdateSessionRequest) (*UpdateSessionResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateSession not implemented")
+}
+func (UnimplementedGRPCSessionServiceServer) GetSessionByRefreshToken(context.Context, *GetSessionByRefreshTokenRequest) (*GetSessionByRefreshTokenResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetSessionByRefreshToken not implemented")
 }
 func (UnimplementedGRPCSessionServiceServer) mustEmbedUnimplementedGRPCSessionServiceServer() {}
 func (UnimplementedGRPCSessionServiceServer) testEmbeddedByValue()                            {}
@@ -146,6 +164,24 @@ func _GRPCSessionService_UpdateSession_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GRPCSessionService_GetSessionByRefreshToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSessionByRefreshTokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GRPCSessionServiceServer).GetSessionByRefreshToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GRPCSessionService_GetSessionByRefreshToken_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GRPCSessionServiceServer).GetSessionByRefreshToken(ctx, req.(*GetSessionByRefreshTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // GRPCSessionService_ServiceDesc is the grpc.ServiceDesc for GRPCSessionService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -160,6 +196,10 @@ var GRPCSessionService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateSession",
 			Handler:    _GRPCSessionService_UpdateSession_Handler,
+		},
+		{
+			MethodName: "GetSessionByRefreshToken",
+			Handler:    _GRPCSessionService_GetSessionByRefreshToken_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -2,6 +2,7 @@ package auth
 
 import (
 	"crypto/rsa"
+	"mangahub/pkg/dto"
 	"time"
 )
 
@@ -28,4 +29,5 @@ type JWTService interface {
 	VerifyJWTToken(token string, publicKey *rsa.PublicKey) (*JWTClaims, error)
 	IsExpire(expUnix int64) bool
 	ParsePublicKeyPEM(publicKeyPEM string) (*rsa.PublicKey, error)
+	RefreshToken(request *dto.RefreshTokenRequest, privateKey *rsa.PrivateKey, publicKey *rsa.PublicKey) (*dto.RefreshTokenResponse, dto.ExceptionDTO)
 }

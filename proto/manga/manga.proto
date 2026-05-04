@@ -9,6 +9,8 @@ message Chapter {
 	string title = 2;
 	int32 chapter_number = 3;
 	string pages_data = 4;
+	string created_at = 5;
+	string updated_at = 6;
 }
 
 message Manga {
@@ -19,6 +21,8 @@ message Manga {
 	string description = 5;
 	string cover_url = 6;
 	string status = 7;
+	string created_at = 8;
+	string updated_at = 9;
 }
 
 message MangaListRequest {

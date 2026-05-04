@@ -30,10 +30,23 @@ message CreateNewUserResponse {
     string updated_at = 4;
 }
 
+message GetUserByIDRequest {
+    string user_id = 1;
+}
+
+message GetUserByIDResponse {
+    string user_id = 1;
+    string username = 2;
+    string created_at = 3;
+    string updated_at = 4;
+}
+
 // GRPCUserService provides RPC endpoints related to user operations.
 service GRPCUserService {
     // GetUserModelByUsername retrieves user information based on the provided username.
     rpc GetUserModelByUsername(GetUserModelByUsernameRequest) returns (GetUserModelByUsernameResponse);
     // CreateNewUser creates a new user account.
     rpc CreateNewUser(CreateNewUserRequest) returns (CreateNewUserResponse);
+    // GetUserByID retrieves user information based on the provided user ID.
+    rpc GetUserByID(GetUserByIDRequest) returns (GetUserByIDResponse);
 }

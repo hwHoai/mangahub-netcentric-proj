@@ -29,6 +29,11 @@ func SetupRoutes(r *gin.Engine, privateKey *rsa.PrivateKey, publicKey *rsa.Publi
 		panic(err)
 	}
 
+	grpcChapterClient, _, err := clients.NewChapterGRPCClient()
+	if err != nil {
+		panic(err)
+	}
+
 	//2. Route definition
 	v1 := r.Group("api/v1")
 	
@@ -41,15 +46,18 @@ func SetupRoutes(r *gin.Engine, privateKey *rsa.PrivateKey, publicKey *rsa.Publi
 	public_route_opts := &PublicRouteOpts{
 		gRPCUserClient:    grpcUserClient,
 		gRPCSessionClient: grpcSessionClient,
-		GRPCMangaClient: grpcMangaClient,
+		GRPCMangaClient:   grpcMangaClient,
+		GRPCChapterClient: grpcChapterClient,
 		PrivateKey:        privateKey,
 		PublicKey:         publicKey,
 	}
 	SetupPublicRoutes(v1, public_route_opts)
 
 	private_route_opts := &PrivateRouteOpts{
-		PublicKey:            publicKey,
+		PublicKey:           publicKey,
 		GRPCUserMangaClient: grpcUserMangaClient,
+		GRPCUserClient:      grpcUserClient,
+		GRPCSessionClient:   grpcSessionClient,
 	}
 	SetupPrivateRoutes(v1, private_route_opts)
 }
