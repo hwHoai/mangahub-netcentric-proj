@@ -14,7 +14,7 @@ import (
 
 type SqliteConnImpl struct {}
 
-var _ database.DatabaseConnectionInterface = (*SqliteConnImpl)(nil)
+var _ database.DatabaseConnection = (*SqliteConnImpl)(nil)
 
 func (s *SqliteConnImpl) InitDB(dbPath string) (*gorm.DB, error) {
 	//

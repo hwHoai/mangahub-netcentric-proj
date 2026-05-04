@@ -4,6 +4,8 @@ import (
 	"crypto/rsa"
 	"mangahub/cmd/api-server/controllers"
 	"mangahub/cmd/api-server/middleware"
+	tcp_services "mangahub/internal/tcp"
+	"mangahub/proto/chapter"
 	"mangahub/proto/session"
 	"mangahub/proto/user"
 	"mangahub/proto/user_manga"
@@ -12,10 +14,12 @@ import (
 )
 
 type PrivateRouteOpts struct {
-	PublicKey           *rsa.PublicKey
-	GRPCUserMangaClient user_manga.GRPCUserMangaServiceClient
-	GRPCUserClient      user.GRPCUserServiceClient
-	GRPCSessionClient   session.GRPCSessionServiceClient
+	PublicKey            *rsa.PublicKey
+	GRPCUserMangaClient  user_manga.GRPCUserMangaServiceClient
+	GRPCUserClient       user.GRPCUserServiceClient
+	GRPCSessionClient    session.GRPCSessionServiceClient
+	GRPCChapterClient    chapter.GRPCChapterServiceClient
+	TCPChapterSyncClient tcp_services.TCPChapterSyncServices
 }
 
 func SetupPrivateRoutes(rg *gin.RouterGroup, opts *PrivateRouteOpts) {
@@ -26,7 +30,11 @@ func SetupPrivateRoutes(rg *gin.RouterGroup, opts *PrivateRouteOpts) {
 	private.Use(authMiddleware.Handler())
 
 	// Initialize controller
-	userMangaController := controllers.NewUserMangaController(opts.GRPCUserMangaClient)
+	userMangaController := controllers.NewUserMangaController(
+		opts.GRPCUserMangaClient,
+		opts.GRPCChapterClient,
+		opts.TCPChapterSyncClient,
+	)
 
 	// USER MANGA ROUTES
 	userMangas := private.Group("/user/mangas")
@@ -41,7 +49,7 @@ func SetupPrivateRoutes(rg *gin.RouterGroup, opts *PrivateRouteOpts) {
 	// USER CHAPTER ROUTES
 	userChapters := private.Group("/user/chapters")
 	{
-		userChapters.POST("/:chapter_id/read", userMangaController.StoreReadingProgress)
+		userChapters.GET("/:chapter_id", userMangaController.ReadChapter)
 	}
 
 	// AUTH PROFILE ROUTES

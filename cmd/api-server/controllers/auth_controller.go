@@ -3,6 +3,7 @@ package controllers
 import (
 	"crypto/rsa"
 	auth_service_impl "mangahub/internal/auth/impl"
+	jwt_impl "mangahub/pkg/utils/jwt/impl"
 	user_service_impl "mangahub/internal/user/impl"
 	"mangahub/pkg/dto"
 	"mangahub/proto/session"
@@ -100,9 +101,9 @@ func (ac *AuthController) RefreshToken(c *gin.Context) {
 		return
 	}
 
-	jwtService := auth_service_impl.NewJWTService(ac.grpcSessionClient)
-
-	response, exception := jwtService.RefreshToken(&request, ac.privateKey, ac.publicKey)
+	jwtUtil := jwt_impl.NewJWTUtil(ac.grpcSessionClient)
+ 
+ 	response, exception := jwtUtil.RefreshToken(&request, ac.privateKey, ac.publicKey)
 	if exception.Code != 0 {
 		c.JSON(exception.Code, gin.H{"error": exception.Message})
 		return

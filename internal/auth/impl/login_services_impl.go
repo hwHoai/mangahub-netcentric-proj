@@ -7,6 +7,8 @@ import (
 
 	"mangahub/internal/auth"
 	"mangahub/pkg/dto"
+	"mangahub/pkg/utils/jwt"
+	jwt_impl "mangahub/pkg/utils/jwt/impl"
 	"mangahub/proto/session"
 	"mangahub/proto/user"
 
@@ -59,8 +61,8 @@ func (s *LoginServiceImpl) LoginByUsername(request *dto.LoginByUsernameRequest) 
 		}
 	}
 
-	jwtService := NewJWTService(s.GRPCSessionClient)
-	accessToken, err := jwtService.SignJWTToken(grpcResponse.UserId, auth.AccessTokenTTL, privateKey)
+	jwtUtil := jwt_impl.NewJWTUtil(s.GRPCSessionClient)
+	accessToken, err := jwtUtil.SignJWTToken(grpcResponse.UserId, jwt.AccessTokenTTL, privateKey)
 	if err != nil {
 		return nil, dto.ExceptionDTO{
 			Code:    500,
@@ -68,7 +70,7 @@ func (s *LoginServiceImpl) LoginByUsername(request *dto.LoginByUsernameRequest) 
 		}
 	}
 
-	refreshToken, err := jwtService.SignJWTToken(grpcResponse.UserId, auth.RefreshTokenTTL, privateKey)
+	refreshToken, err := jwtUtil.SignJWTToken(grpcResponse.UserId, jwt.RefreshTokenTTL, privateKey)
 	if err != nil {
 		return nil, dto.ExceptionDTO{
 			Code:    500,
@@ -93,6 +95,6 @@ func (s *LoginServiceImpl) LoginByUsername(request *dto.LoginByUsernameRequest) 
 	return &dto.LoginByUsernameResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
-		ExpiresIn:    int64(auth.AccessTokenTTL.Seconds()),
+		ExpiresIn:    int64(jwt.AccessTokenTTL.Seconds()),
 	}, dto.ExceptionDTO{}
 }

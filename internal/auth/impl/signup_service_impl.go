@@ -7,6 +7,8 @@ import (
 
 	"mangahub/internal/auth"
 	"mangahub/pkg/dto"
+	"mangahub/pkg/utils/jwt"
+	jwt_impl "mangahub/pkg/utils/jwt/impl"
 	"mangahub/proto/session"
 	"mangahub/proto/user"
 
@@ -71,8 +73,8 @@ func (s *SignupServiceImpl) SignupByUsername(request *dto.SignupByUsernameReques
 		}
 	}
 
-	// 3. Initialize JWT service and create RSA key pair for token signing
-	jwtService := NewJWTService(s.GRPCSessionClient)
+	// 3. Initialize JWT utility and use private key for token signing
+	jwtUtil := jwt_impl.NewJWTUtil(s.GRPCSessionClient)
 	privateKey := s.PrivateKey
 	if privateKey == nil {
 		return nil, dto.ExceptionDTO{
@@ -82,7 +84,7 @@ func (s *SignupServiceImpl) SignupByUsername(request *dto.SignupByUsernameReques
 	}
 
 	// 4. Sign tokens
-	accessToken, err := jwtService.SignJWTToken(grpcResponse.UserId, auth.AccessTokenTTL, privateKey)
+	accessToken, err := jwtUtil.SignJWTToken(grpcResponse.UserId, jwt.AccessTokenTTL, privateKey)
 	if err != nil {
 		return nil, dto.ExceptionDTO{
 			Code:    500,
@@ -90,7 +92,7 @@ func (s *SignupServiceImpl) SignupByUsername(request *dto.SignupByUsernameReques
 		}
 	}
 
-	refreshToken, err := jwtService.SignJWTToken(grpcResponse.UserId, auth.RefreshTokenTTL, privateKey)
+	refreshToken, err := jwtUtil.SignJWTToken(grpcResponse.UserId, jwt.RefreshTokenTTL, privateKey)
 	if err != nil {
 		return nil, dto.ExceptionDTO{
 			Code:    500,
@@ -114,7 +116,7 @@ func (s *SignupServiceImpl) SignupByUsername(request *dto.SignupByUsernameReques
 	}
 
 	// 7. Calculate expiry time
-	expiresIn := int64(auth.AccessTokenTTL.Seconds())
+	expiresIn := int64(jwt.AccessTokenTTL.Seconds())
 
 	return &dto.SignupByUsernameResponse{
 		AccessToken:  accessToken,

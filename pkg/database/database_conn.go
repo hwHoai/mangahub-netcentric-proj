@@ -6,6 +6,6 @@ import (
 
 var DB *gorm.DB
 
-type DatabaseConnectionInterface interface {
+type DatabaseConnection interface {
 	InitDB(dbPath string) (*gorm.DB, error)
 }

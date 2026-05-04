@@ -3,8 +3,8 @@ package middleware
 import (
 	"crypto/rsa"
 	"fmt"
-	"mangahub/internal/auth"
-	auth_service_impl "mangahub/internal/auth/impl"
+	"mangahub/pkg/utils/jwt"
+	jwt_impl "mangahub/pkg/utils/jwt/impl"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -12,13 +12,13 @@ import (
 
 type AuthMiddleware struct {
 	publicKey  *rsa.PublicKey
-	jwtService auth.JWTService
+	jwtUtil    jwt.JWTUtil
 }
 
 func NewAuthMiddleware(publicKey *rsa.PublicKey) *AuthMiddleware {
 	return &AuthMiddleware{
-		publicKey:  publicKey,
-		jwtService: auth_service_impl.NewJWTService(nil),
+		publicKey: publicKey,
+		jwtUtil:   jwt_impl.NewJWTUtil(nil),
 	}
 }
 
@@ -47,7 +47,7 @@ func (am *AuthMiddleware) Handler() gin.HandlerFunc {
 		accessToken := parts[1]
 
 		// Verify JWT token using the in-memory public key.
-		jwtClaims, err := am.jwtService.VerifyJWTToken(accessToken, am.publicKey)
+		jwtClaims, err := am.jwtUtil.VerifyJWTToken(accessToken, am.publicKey)
 		if err != nil {
 			c.JSON(401, gin.H{
 				"error": fmt.Sprintf("invalid or expired token: %v", err),

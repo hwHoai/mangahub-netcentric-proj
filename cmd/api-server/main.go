@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -10,19 +11,28 @@ import (
 	"time"
 
 	routes "mangahub/cmd/api-server/routes"
-	auth_service_impl "mangahub/internal/auth/impl"
+	tcp_services_impl "mangahub/internal/tcp/impl"
+	jwt_impl "mangahub/pkg/utils/jwt/impl"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
 
 func main() {
-	// 1. Load file .env trước khi làm bất cứ việc gì khác
-	
+	// 1. Load file .env	
 	if err := godotenv.Load("../../.env"); err != nil {
 		// log.Fatalf will stop the program
 		log.Println("Warning: No .env file found, using environment variables if set")
 	}
+	tcpHost := os.Getenv("TCP_SERVER_HOST")
+	tcpPort := os.Getenv("TCP_SERVER_PORT")
+	if tcpHost == "" {
+		tcpHost = "localhost"
+	}
+	if tcpPort == "" {
+		tcpPort = "8082"
+	}
+	tcpAddr := fmt.Sprintf("%s:%s", tcpHost, tcpPort)
 
 	//2. Setup Router
 	r := gin.Default()
@@ -32,10 +42,17 @@ func main() {
 	r.Use(gin.Logger())
 
 	// 4. Generate JWT key pair once at startup and keep private key in memory only for auth.
-	jwtService := auth_service_impl.NewJWTService(nil)
-	privateKey, publicKey, err := jwtService.CreateRSAKeyPair(2048)
+	jwtUtil := jwt_impl.NewJWTUtil(nil)
+	privateKey, publicKey, err := jwtUtil.CreateRSAKeyPair(2048)
 	if err != nil {
 		log.Fatalf("failed to create JWT key pair: %v", err)
+	}
+
+	// 4.1 Broadcast public key to TCP server
+	publicKeyPEM, _ := jwtUtil.StringifyPublicKeyPEM(publicKey)
+	tcpKeySyncService := tcp_services_impl.NewTCPKeySyncService(tcpAddr)
+	if err := tcpKeySyncService.SyncPublicKey(publicKeyPEM); err != nil {
+		log.Printf("Warning: failed to broadcast public key to TCP server: %v", err)
 	}
 	
 	// 5. Routes definition

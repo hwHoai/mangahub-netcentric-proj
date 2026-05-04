@@ -2,7 +2,7 @@ package routes
 
 import (
 	"crypto/rsa"
-	"mangahub/cmd/api-server/clients"
+	"mangahub/pkg/clients"
 
 	"github.com/gin-gonic/gin"
 )
@@ -34,6 +34,8 @@ func SetupRoutes(r *gin.Engine, privateKey *rsa.PrivateKey, publicKey *rsa.Publi
 		panic(err)
 	}
 
+	tcpChapterSyncClient := clients.NewTCPChapterSyncClient()
+
 	//2. Route definition
 	v1 := r.Group("api/v1")
 	
@@ -54,10 +56,12 @@ func SetupRoutes(r *gin.Engine, privateKey *rsa.PrivateKey, publicKey *rsa.Publi
 	SetupPublicRoutes(v1, public_route_opts)
 
 	private_route_opts := &PrivateRouteOpts{
-		PublicKey:           publicKey,
-		GRPCUserMangaClient: grpcUserMangaClient,
-		GRPCUserClient:      grpcUserClient,
-		GRPCSessionClient:   grpcSessionClient,
+		PublicKey:            publicKey,
+		GRPCUserMangaClient:  grpcUserMangaClient,
+		GRPCUserClient:       grpcUserClient,
+		GRPCSessionClient:    grpcSessionClient,
+		GRPCChapterClient:    grpcChapterClient,
+		TCPChapterSyncClient: tcpChapterSyncClient,
 	}
 	SetupPrivateRoutes(v1, private_route_opts)
 }

@@ -1,21 +1,33 @@
 package controllers
 
 import (
+	manga_services_impl "mangahub/internal/manga/impl"
 	user_services_impl "mangahub/internal/user/impl"
+	"mangahub/proto/chapter"
 	"mangahub/proto/user_manga"
+	"mangahub/internal/tcp"
 	"net/http"
 	"strconv"
+	"log"
 
 	"github.com/gin-gonic/gin"
 )
 
 type UserMangaController struct {
-	grpcUserMangaClient user_manga.GRPCUserMangaServiceClient
+	grpcUserMangaClient  user_manga.GRPCUserMangaServiceClient
+	grpcChapterClient    chapter.GRPCChapterServiceClient
+	tcpChapterSyncClient tcp_services.TCPChapterSyncServices
 }
 
-func NewUserMangaController(grpcUserMangaClient user_manga.GRPCUserMangaServiceClient) *UserMangaController {
+func NewUserMangaController(
+	grpcUserMangaClient user_manga.GRPCUserMangaServiceClient,
+	grpcChapterClient chapter.GRPCChapterServiceClient,
+	tcpChapterSyncClient tcp_services.TCPChapterSyncServices,
+) *UserMangaController {
 	return &UserMangaController{
-		grpcUserMangaClient: grpcUserMangaClient,
+		grpcUserMangaClient:  grpcUserMangaClient,
+		grpcChapterClient:    grpcChapterClient,
+		tcpChapterSyncClient: tcpChapterSyncClient,
 	}
 }
 
@@ -76,22 +88,29 @@ func (uc *UserMangaController) GetFollowingMangas(c *gin.Context) {
 	})
 }
 
-// POST /api/v1/user/chapters/:chapter_id/read
-func (uc *UserMangaController) StoreReadingProgress(c *gin.Context) {
+// GET /api/v1/user/chapters/:chapter_id
+func (uc *UserMangaController) ReadChapter(c *gin.Context) {
 	userID := c.GetString("user_id")
 	chapterID := c.Param("chapter_id")
 
-	service := user_services_impl.NewUserMangaService(uc.grpcUserMangaClient)
+	service := manga_services_impl.NewChapterService(uc.grpcChapterClient)
 
-	progress, err := service.StoreReadingProgress(userID, chapterID)
+	chapter, err := service.ReadChapter(chapterID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
-		"message": "Reading progress stored",
-		"data":    progress,
+	// Trigger TCP broadcast to other devices
+	go func() {
+		if err := uc.tcpChapterSyncClient.SyncReading(userID, chapterID); err != nil {
+			log.Printf("Failed to broadcast reading progress: %v", err)
+		}
+	}()
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Chapter retrieved",
+		"data":    chapter,
 	})
 }
 // GET /api/v1/user/history
