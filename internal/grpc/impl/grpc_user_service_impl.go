@@ -5,9 +5,9 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"mangahub/internal/grpc"
+	repository_impl "mangahub/internal/repository/impl"
 	"mangahub/pkg/models"
 	"mangahub/pkg/utils"
-	repository_impl "mangahub/pkg/repository/impl"
 	"mangahub/proto/user"
 
 	"gorm.io/gorm"

@@ -22,6 +22,7 @@ const (
 	GRPCMangaService_GetMangas_FullMethodName        = "/manga.GRPCMangaService/GetMangas"
 	GRPCMangaService_GetMangaDetail_FullMethodName   = "/manga.GRPCMangaService/GetMangaDetail"
 	GRPCMangaService_GetMangaChapters_FullMethodName = "/manga.GRPCMangaService/GetMangaChapters"
+	GRPCMangaService_CheckMangaExists_FullMethodName = "/manga.GRPCMangaService/CheckMangaExists"
 )
 
 // GRPCMangaServiceClient is the client API for GRPCMangaService service.
@@ -31,6 +32,7 @@ type GRPCMangaServiceClient interface {
 	GetMangas(ctx context.Context, in *MangaListRequest, opts ...grpc.CallOption) (*MangaListResponse, error)
 	GetMangaDetail(ctx context.Context, in *MangaDetailRequest, opts ...grpc.CallOption) (*MangaDetailResponse, error)
 	GetMangaChapters(ctx context.Context, in *MangaChaptersRequest, opts ...grpc.CallOption) (*MangaChaptersResponse, error)
+	CheckMangaExists(ctx context.Context, in *CheckMangaExistsRequest, opts ...grpc.CallOption) (*CheckMangaExistsResponse, error)
 }
 
 type gRPCMangaServiceClient struct {
@@ -71,6 +73,16 @@ func (c *gRPCMangaServiceClient) GetMangaChapters(ctx context.Context, in *Manga
 	return out, nil
 }
 
+func (c *gRPCMangaServiceClient) CheckMangaExists(ctx context.Context, in *CheckMangaExistsRequest, opts ...grpc.CallOption) (*CheckMangaExistsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CheckMangaExistsResponse)
+	err := c.cc.Invoke(ctx, GRPCMangaService_CheckMangaExists_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GRPCMangaServiceServer is the server API for GRPCMangaService service.
 // All implementations must embed UnimplementedGRPCMangaServiceServer
 // for forward compatibility.
@@ -78,6 +90,7 @@ type GRPCMangaServiceServer interface {
 	GetMangas(context.Context, *MangaListRequest) (*MangaListResponse, error)
 	GetMangaDetail(context.Context, *MangaDetailRequest) (*MangaDetailResponse, error)
 	GetMangaChapters(context.Context, *MangaChaptersRequest) (*MangaChaptersResponse, error)
+	CheckMangaExists(context.Context, *CheckMangaExistsRequest) (*CheckMangaExistsResponse, error)
 	mustEmbedUnimplementedGRPCMangaServiceServer()
 }
 
@@ -96,6 +109,9 @@ func (UnimplementedGRPCMangaServiceServer) GetMangaDetail(context.Context, *Mang
 }
 func (UnimplementedGRPCMangaServiceServer) GetMangaChapters(context.Context, *MangaChaptersRequest) (*MangaChaptersResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetMangaChapters not implemented")
+}
+func (UnimplementedGRPCMangaServiceServer) CheckMangaExists(context.Context, *CheckMangaExistsRequest) (*CheckMangaExistsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CheckMangaExists not implemented")
 }
 func (UnimplementedGRPCMangaServiceServer) mustEmbedUnimplementedGRPCMangaServiceServer() {}
 func (UnimplementedGRPCMangaServiceServer) testEmbeddedByValue()                          {}
@@ -172,6 +188,24 @@ func _GRPCMangaService_GetMangaChapters_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GRPCMangaService_CheckMangaExists_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckMangaExistsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GRPCMangaServiceServer).CheckMangaExists(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GRPCMangaService_CheckMangaExists_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GRPCMangaServiceServer).CheckMangaExists(ctx, req.(*CheckMangaExistsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // GRPCMangaService_ServiceDesc is the grpc.ServiceDesc for GRPCMangaService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -190,6 +224,10 @@ var GRPCMangaService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetMangaChapters",
 			Handler:    _GRPCMangaService_GetMangaChapters_Handler,
+		},
+		{
+			MethodName: "CheckMangaExists",
+			Handler:    _GRPCMangaService_CheckMangaExists_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -72,10 +72,20 @@ message GetReadingHistoryResponse {
 	repeated ReadingHistoryItem history = 1;
 }
 
+// Get Followers
+message GetFollowersRequest {
+	string manga_id = 1;
+}
+
+message GetFollowersResponse {
+	repeated string user_ids = 1;
+}
+
 service GRPCUserMangaService {
 	rpc FollowManga(FollowMangaRequest) returns (FollowMangaResponse);
 	rpc UnfollowManga(UnfollowMangaRequest) returns (UnfollowMangaResponse);
 	rpc GetFollowingMangas(GetFollowingMangasRequest) returns (GetFollowingMangasResponse);
 	rpc StoreReadingProgress(StoreReadingProgressRequest) returns (StoreReadingProgressResponse);
 	rpc GetReadingHistory(GetReadingHistoryRequest) returns (GetReadingHistoryResponse);
+	rpc GetFollowers(GetFollowersRequest) returns (GetFollowersResponse);
 }

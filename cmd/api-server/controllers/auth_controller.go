@@ -4,7 +4,7 @@ import (
 	"crypto/rsa"
 	auth_service_impl "mangahub/internal/auth/impl"
 	jwt_impl "mangahub/pkg/utils/jwt/impl"
-	user_service_impl "mangahub/internal/user/impl"
+	user_internal "mangahub/internal/user"
 	"mangahub/pkg/dto"
 	"mangahub/proto/session"
 	"mangahub/proto/user"
@@ -15,14 +15,22 @@ import (
 type AuthController struct {
 	grpcUserClient    user.GRPCUserServiceClient
 	grpcSessionClient session.GRPCSessionServiceClient
+	userService       user_internal.UserService
 	privateKey        *rsa.PrivateKey
 	publicKey         *rsa.PublicKey
 }
 
-func NewAuthController(grpcUserClient user.GRPCUserServiceClient, grpcSessionClient session.GRPCSessionServiceClient, privateKey *rsa.PrivateKey, publicKey *rsa.PublicKey) *AuthController {
+func NewAuthController(
+	grpcUserClient user.GRPCUserServiceClient,
+	grpcSessionClient session.GRPCSessionServiceClient,
+	UserService user_internal.UserService,
+	privateKey *rsa.PrivateKey,
+	publicKey *rsa.PublicKey,
+) *AuthController {
 	return &AuthController{
 		grpcUserClient:    grpcUserClient,
 		grpcSessionClient: grpcSessionClient,
+		userService:         UserService,
 		privateKey:        privateKey,
 		publicKey:         publicKey,
 	}
@@ -122,11 +130,7 @@ func (ac *AuthController) GetMe(c *gin.Context) {
 		return
 	}
 
-	meService := user_service_impl.MeServiceImpl{
-		GRPCUserClient: ac.grpcUserClient,
-	}
-
-	response, exception := meService.GetMe(userID)
+	response, exception := ac.userService.GetUserDetails(userID)
 	if exception.Code != 0 {
 		c.JSON(exception.Code, gin.H{"error": exception.Message})
 		return

@@ -3,8 +3,9 @@ package grpc_services_impl
 import (
 	"context"
 	"mangahub/internal/grpc"
+	repository_impl "mangahub/internal/repository/impl"
+	"mangahub/pkg/models"
 	"mangahub/pkg/utils"
-	repository_impl "mangahub/pkg/repository/impl"
 	"mangahub/proto/chapter"
 
 	"gorm.io/gorm"
@@ -38,5 +39,29 @@ func (s *GRPCChapterService) GetChapterByID(ctx context.Context, req *chapter.Ge
 		PagesData:     chapterModel.PagesData,
 		CreatedAt:     chapterModel.CreatedAt.Format(utils.TimeLayout),
 		UpdatedAt:     chapterModel.UpdatedAt.Format(utils.TimeLayout),
+	}, nil
+}
+
+func (s *GRPCChapterService) CreateChapter(ctx context.Context, req *chapter.CreateChapterRequest) (*chapter.CreateChapterResponse, error) {
+	chapterRepo := repository_impl.NewChapterRepositoryImpl(s.db)
+	
+	chapterModel := models.NewChapterModel(
+		req.MangaId,
+		req.ChapterNumber,
+		req.Title,
+		req.PagesData,
+	)
+	if req.Id != "" {
+		chapterModel.ID = req.Id
+	}
+
+	err := chapterRepo.SaveChapter(chapterModel)
+	if err != nil {
+		return nil, err
+	}
+
+	return &chapter.CreateChapterResponse{
+		Success: true,
+		Id:      chapterModel.ID,
 	}, nil
 }

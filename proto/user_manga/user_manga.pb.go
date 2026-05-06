@@ -654,6 +654,95 @@ func (x *GetReadingHistoryResponse) GetHistory() []*ReadingHistoryItem {
 	return nil
 }
 
+// Get Followers
+type GetFollowersRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	MangaId       string                 `protobuf:"bytes,1,opt,name=manga_id,json=mangaId,proto3" json:"manga_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetFollowersRequest) Reset() {
+	*x = GetFollowersRequest{}
+	mi := &file_proto_user_manga_user_manga_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetFollowersRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetFollowersRequest) ProtoMessage() {}
+
+func (x *GetFollowersRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_user_manga_user_manga_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetFollowersRequest.ProtoReflect.Descriptor instead.
+func (*GetFollowersRequest) Descriptor() ([]byte, []int) {
+	return file_proto_user_manga_user_manga_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *GetFollowersRequest) GetMangaId() string {
+	if x != nil {
+		return x.MangaId
+	}
+	return ""
+}
+
+type GetFollowersResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserIds       []string               `protobuf:"bytes,1,rep,name=user_ids,json=userIds,proto3" json:"user_ids,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetFollowersResponse) Reset() {
+	*x = GetFollowersResponse{}
+	mi := &file_proto_user_manga_user_manga_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetFollowersResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetFollowersResponse) ProtoMessage() {}
+
+func (x *GetFollowersResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_user_manga_user_manga_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetFollowersResponse.ProtoReflect.Descriptor instead.
+func (*GetFollowersResponse) Descriptor() ([]byte, []int) {
+	return file_proto_user_manga_user_manga_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *GetFollowersResponse) GetUserIds() []string {
+	if x != nil {
+		return x.UserIds
+	}
+	return nil
+}
+
 var File_proto_user_manga_user_manga_proto protoreflect.FileDescriptor
 
 const file_proto_user_manga_user_manga_proto_rawDesc = "" +
@@ -705,13 +794,18 @@ const file_proto_user_manga_user_manga_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x05 \x01(\tR\tcreatedAt\"U\n" +
 	"\x19GetReadingHistoryResponse\x128\n" +
-	"\ahistory\x18\x01 \x03(\v2\x1e.user_manga.ReadingHistoryItemR\ahistory2\xee\x03\n" +
+	"\ahistory\x18\x01 \x03(\v2\x1e.user_manga.ReadingHistoryItemR\ahistory\"0\n" +
+	"\x13GetFollowersRequest\x12\x19\n" +
+	"\bmanga_id\x18\x01 \x01(\tR\amangaId\"1\n" +
+	"\x14GetFollowersResponse\x12\x19\n" +
+	"\buser_ids\x18\x01 \x03(\tR\auserIds2\xc1\x04\n" +
 	"\x14GRPCUserMangaService\x12N\n" +
 	"\vFollowManga\x12\x1e.user_manga.FollowMangaRequest\x1a\x1f.user_manga.FollowMangaResponse\x12T\n" +
 	"\rUnfollowManga\x12 .user_manga.UnfollowMangaRequest\x1a!.user_manga.UnfollowMangaResponse\x12c\n" +
 	"\x12GetFollowingMangas\x12%.user_manga.GetFollowingMangasRequest\x1a&.user_manga.GetFollowingMangasResponse\x12i\n" +
 	"\x14StoreReadingProgress\x12'.user_manga.StoreReadingProgressRequest\x1a(.user_manga.StoreReadingProgressResponse\x12`\n" +
-	"\x11GetReadingHistory\x12$.user_manga.GetReadingHistoryRequest\x1a%.user_manga.GetReadingHistoryResponseB&Z$mangahub/proto/user_manga;user_mangab\x06proto3"
+	"\x11GetReadingHistory\x12$.user_manga.GetReadingHistoryRequest\x1a%.user_manga.GetReadingHistoryResponse\x12Q\n" +
+	"\fGetFollowers\x12\x1f.user_manga.GetFollowersRequest\x1a .user_manga.GetFollowersResponseB&Z$mangahub/proto/user_manga;user_mangab\x06proto3"
 
 var (
 	file_proto_user_manga_user_manga_proto_rawDescOnce sync.Once
@@ -725,7 +819,7 @@ func file_proto_user_manga_user_manga_proto_rawDescGZIP() []byte {
 	return file_proto_user_manga_user_manga_proto_rawDescData
 }
 
-var file_proto_user_manga_user_manga_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_proto_user_manga_user_manga_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_proto_user_manga_user_manga_proto_goTypes = []any{
 	(*FollowMangaRequest)(nil),           // 0: user_manga.FollowMangaRequest
 	(*FollowMangaResponse)(nil),          // 1: user_manga.FollowMangaResponse
@@ -738,24 +832,28 @@ var file_proto_user_manga_user_manga_proto_goTypes = []any{
 	(*GetReadingHistoryRequest)(nil),     // 8: user_manga.GetReadingHistoryRequest
 	(*ReadingHistoryItem)(nil),           // 9: user_manga.ReadingHistoryItem
 	(*GetReadingHistoryResponse)(nil),    // 10: user_manga.GetReadingHistoryResponse
-	(*manga.Manga)(nil),                  // 11: manga.Manga
+	(*GetFollowersRequest)(nil),          // 11: user_manga.GetFollowersRequest
+	(*GetFollowersResponse)(nil),         // 12: user_manga.GetFollowersResponse
+	(*manga.Manga)(nil),                  // 13: manga.Manga
 }
 var file_proto_user_manga_user_manga_proto_depIdxs = []int32{
-	11, // 0: user_manga.GetFollowingMangasResponse.mangas:type_name -> manga.Manga
-	11, // 1: user_manga.ReadingHistoryItem.manga:type_name -> manga.Manga
+	13, // 0: user_manga.GetFollowingMangasResponse.mangas:type_name -> manga.Manga
+	13, // 1: user_manga.ReadingHistoryItem.manga:type_name -> manga.Manga
 	9,  // 2: user_manga.GetReadingHistoryResponse.history:type_name -> user_manga.ReadingHistoryItem
 	0,  // 3: user_manga.GRPCUserMangaService.FollowManga:input_type -> user_manga.FollowMangaRequest
 	2,  // 4: user_manga.GRPCUserMangaService.UnfollowManga:input_type -> user_manga.UnfollowMangaRequest
 	4,  // 5: user_manga.GRPCUserMangaService.GetFollowingMangas:input_type -> user_manga.GetFollowingMangasRequest
 	6,  // 6: user_manga.GRPCUserMangaService.StoreReadingProgress:input_type -> user_manga.StoreReadingProgressRequest
 	8,  // 7: user_manga.GRPCUserMangaService.GetReadingHistory:input_type -> user_manga.GetReadingHistoryRequest
-	1,  // 8: user_manga.GRPCUserMangaService.FollowManga:output_type -> user_manga.FollowMangaResponse
-	3,  // 9: user_manga.GRPCUserMangaService.UnfollowManga:output_type -> user_manga.UnfollowMangaResponse
-	5,  // 10: user_manga.GRPCUserMangaService.GetFollowingMangas:output_type -> user_manga.GetFollowingMangasResponse
-	7,  // 11: user_manga.GRPCUserMangaService.StoreReadingProgress:output_type -> user_manga.StoreReadingProgressResponse
-	10, // 12: user_manga.GRPCUserMangaService.GetReadingHistory:output_type -> user_manga.GetReadingHistoryResponse
-	8,  // [8:13] is the sub-list for method output_type
-	3,  // [3:8] is the sub-list for method input_type
+	11, // 8: user_manga.GRPCUserMangaService.GetFollowers:input_type -> user_manga.GetFollowersRequest
+	1,  // 9: user_manga.GRPCUserMangaService.FollowManga:output_type -> user_manga.FollowMangaResponse
+	3,  // 10: user_manga.GRPCUserMangaService.UnfollowManga:output_type -> user_manga.UnfollowMangaResponse
+	5,  // 11: user_manga.GRPCUserMangaService.GetFollowingMangas:output_type -> user_manga.GetFollowingMangasResponse
+	7,  // 12: user_manga.GRPCUserMangaService.StoreReadingProgress:output_type -> user_manga.StoreReadingProgressResponse
+	10, // 13: user_manga.GRPCUserMangaService.GetReadingHistory:output_type -> user_manga.GetReadingHistoryResponse
+	12, // 14: user_manga.GRPCUserMangaService.GetFollowers:output_type -> user_manga.GetFollowersResponse
+	9,  // [9:15] is the sub-list for method output_type
+	3,  // [3:9] is the sub-list for method input_type
 	3,  // [3:3] is the sub-list for extension type_name
 	3,  // [3:3] is the sub-list for extension extendee
 	0,  // [0:3] is the sub-list for field type_name
@@ -772,7 +870,7 @@ func file_proto_user_manga_user_manga_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_user_manga_user_manga_proto_rawDesc), len(file_proto_user_manga_user_manga_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

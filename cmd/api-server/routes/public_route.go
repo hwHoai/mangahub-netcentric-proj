@@ -3,8 +3,8 @@ package routes
 import (
 	"crypto/rsa"
 	"mangahub/cmd/api-server/controllers"
-	"mangahub/proto/chapter"
-	"mangahub/proto/manga"
+	"mangahub/internal/manga"
+	user_internal "mangahub/internal/user"
 	"mangahub/proto/session"
 	"mangahub/proto/user"
 
@@ -12,23 +12,24 @@ import (
 )
 
 type PublicRouteOpts struct {
-	gRPCUserClient    user.GRPCUserServiceClient
-	gRPCSessionClient session.GRPCSessionServiceClient
-	GRPCMangaClient   manga.GRPCMangaServiceClient
-	GRPCChapterClient chapter.GRPCChapterServiceClient
+	GRPCUserClient    user.GRPCUserServiceClient
+	GRPCSessionClient session.GRPCSessionServiceClient
+	MangaService      manga.MangaService
+	ChapterService    manga.ChapterService
+	UserService       user_internal.UserService
 	PrivateKey        *rsa.PrivateKey
 	PublicKey         *rsa.PublicKey
 }
 
 func SetupPublicRoutes(rg *gin.RouterGroup, opts *PublicRouteOpts) {
 	//1. Handler definition (if needed)
-	grpcUserClient := opts.gRPCUserClient
-	grpcSessionClient := opts.gRPCSessionClient
-	grpcMangaClient := opts.GRPCMangaClient
-	grpcChapterClient := opts.GRPCChapterClient
+	grpcUserClient := opts.GRPCUserClient
+	grpcSessionClient := opts.GRPCSessionClient
+	mangaService := opts.MangaService
+	chapterService := opts.ChapterService
 
-	authController := controllers.NewAuthController(grpcUserClient, grpcSessionClient, opts.PrivateKey, opts.PublicKey)
-	mangaController := controllers.NewMangaController(grpcMangaClient, grpcChapterClient)
+	authController := controllers.NewAuthController(grpcUserClient, grpcSessionClient, opts.UserService, opts.PrivateKey, opts.PublicKey)
+	mangaController := controllers.NewMangaController(mangaService, chapterService)
 	
 	//2. Middleware for public routes can be added here (if needed)
 

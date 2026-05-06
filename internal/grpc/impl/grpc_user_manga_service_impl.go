@@ -2,14 +2,15 @@ package grpc_services_impl
 
 import (
 	"context"
+	"mangahub/proto/user_manga"
+
 	"fmt"
 	"mangahub/internal/grpc"
+	repository_impl "mangahub/internal/repository/impl"
 	"mangahub/pkg/models"
 	"mangahub/pkg/models/enums"
 	"mangahub/pkg/utils"
-	repository_impl "mangahub/pkg/repository/impl"
 	manga "mangahub/proto/manga"
-	"mangahub/proto/user_manga"
 	"strings"
 
 	"gorm.io/gorm"
@@ -164,5 +165,21 @@ func (s *GRPCUserMangaService) GetReadingHistory(ctx context.Context, req *user_
 
 	return &user_manga.GetReadingHistoryResponse{
 		History: historyItems,
+	}, nil
+}
+
+func (s *GRPCUserMangaService) GetFollowers(ctx context.Context, req *user_manga.GetFollowersRequest) (*user_manga.GetFollowersResponse, error) {
+	if req.MangaId == "" {
+		return nil, fmt.Errorf("manga_id is required")
+	}
+
+	followerRepo := repository_impl.NewMangaFollowerRepository(s.db)
+	userIDs, err := followerRepo.GetFollowers(req.MangaId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get followers: %w", err)
+	}
+
+	return &user_manga.GetFollowersResponse{
+		UserIds: userIDs,
 	}, nil
 }

@@ -1,0 +1,24 @@
+{
+  "manga": {
+    "id": "29b2a759-ab30-4e71-a149-3e853756ce75",
+    "title": "Chainsaw Man",
+    "description": "Denji has a simple dream—to live a happy and peaceful life..."
+  },
+  "chapter_sync_request": {
+    "url": "/api/v1/mangas/29b2a759-ab30-4e71-a149-3e853756ce75/chapters",
+    "method": "POST",
+    "body": {
+      "mangadex_chapter_id": "d2f5ea0b-9e2f-4d08-aaed-5166e047e1a7"
+    },
+    "note": "Request này sẽ fetch data từ MangaDex, lưu vào DB qua gRPC, và gửi thông báo UDP tới các followers."
+  },
+  "udp_notification_payload_example": {
+    "action": "chapter:impl_broadcast_notification",
+    "payload": {
+      "manga_id": "29b2a759-ab30-4e71-a149-3e853756ce75",
+      "chapter_id": "d2f5ea0b-9e2f-4d08-aaed-5166e047e1a7",
+      "chapter_title": "Dog & Chainsaw",
+      "chapter_number": 1
+    }
+  }
+}

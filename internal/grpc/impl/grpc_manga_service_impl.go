@@ -3,8 +3,8 @@ package grpc_services_impl
 import (
 	"context"
 	"mangahub/internal/grpc"
+	repository_impl "mangahub/internal/repository/impl"
 	"mangahub/pkg/utils"
-	repository_impl "mangahub/pkg/repository/impl"
 	manga "mangahub/proto/manga"
 
 	"gorm.io/gorm"
@@ -86,4 +86,12 @@ func (g *GRPCMangaService) GetMangaChapters(ctx context.Context, req *manga.Mang
 	return &manga.MangaChaptersResponse{
 		Chapters: chapterList,
 	}, nil
+}
+func (g *GRPCMangaService) CheckMangaExists(ctx context.Context, req *manga.CheckMangaExistsRequest) (*manga.CheckMangaExistsResponse, error) {
+	mangaRepo := repository_impl.NewMangaRepository(g.db)
+	exists, err := mangaRepo.CheckMangaExists(req.Id)
+	if err != nil {
+		return &manga.CheckMangaExistsResponse{Exists: false}, nil
+	}
+	return &manga.CheckMangaExistsResponse{Exists: exists}, nil
 }

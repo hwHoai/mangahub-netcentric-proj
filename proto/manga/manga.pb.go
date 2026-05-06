@@ -485,6 +485,94 @@ func (x *MangaChaptersResponse) GetChapters() []*Chapter {
 	return nil
 }
 
+type CheckMangaExistsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CheckMangaExistsRequest) Reset() {
+	*x = CheckMangaExistsRequest{}
+	mi := &file_proto_manga_manga_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CheckMangaExistsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckMangaExistsRequest) ProtoMessage() {}
+
+func (x *CheckMangaExistsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_manga_manga_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckMangaExistsRequest.ProtoReflect.Descriptor instead.
+func (*CheckMangaExistsRequest) Descriptor() ([]byte, []int) {
+	return file_proto_manga_manga_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *CheckMangaExistsRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type CheckMangaExistsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Exists        bool                   `protobuf:"varint,1,opt,name=exists,proto3" json:"exists,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CheckMangaExistsResponse) Reset() {
+	*x = CheckMangaExistsResponse{}
+	mi := &file_proto_manga_manga_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CheckMangaExistsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckMangaExistsResponse) ProtoMessage() {}
+
+func (x *CheckMangaExistsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_manga_manga_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckMangaExistsResponse.ProtoReflect.Descriptor instead.
+func (*CheckMangaExistsResponse) Descriptor() ([]byte, []int) {
+	return file_proto_manga_manga_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *CheckMangaExistsResponse) GetExists() bool {
+	if x != nil {
+		return x.Exists
+	}
+	return false
+}
+
 var File_proto_manga_manga_proto protoreflect.FileDescriptor
 
 const file_proto_manga_manga_proto_rawDesc = "" +
@@ -524,11 +612,16 @@ const file_proto_manga_manga_proto_rawDesc = "" +
 	"\x14MangaChaptersRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"C\n" +
 	"\x15MangaChaptersResponse\x12*\n" +
-	"\bchapters\x18\x01 \x03(\v2\x0e.manga.ChapterR\bchapters2\xea\x01\n" +
+	"\bchapters\x18\x01 \x03(\v2\x0e.manga.ChapterR\bchapters\")\n" +
+	"\x17CheckMangaExistsRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"2\n" +
+	"\x18CheckMangaExistsResponse\x12\x16\n" +
+	"\x06exists\x18\x01 \x01(\bR\x06exists2\xbf\x02\n" +
 	"\x10GRPCMangaService\x12>\n" +
 	"\tGetMangas\x12\x17.manga.MangaListRequest\x1a\x18.manga.MangaListResponse\x12G\n" +
 	"\x0eGetMangaDetail\x12\x19.manga.MangaDetailRequest\x1a\x1a.manga.MangaDetailResponse\x12M\n" +
-	"\x10GetMangaChapters\x12\x1b.manga.MangaChaptersRequest\x1a\x1c.manga.MangaChaptersResponseB\x1cZ\x1amangahub/proto/manga;mangab\x06proto3"
+	"\x10GetMangaChapters\x12\x1b.manga.MangaChaptersRequest\x1a\x1c.manga.MangaChaptersResponse\x12S\n" +
+	"\x10CheckMangaExists\x12\x1e.manga.CheckMangaExistsRequest\x1a\x1f.manga.CheckMangaExistsResponseB\x1cZ\x1amangahub/proto/manga;mangab\x06proto3"
 
 var (
 	file_proto_manga_manga_proto_rawDescOnce sync.Once
@@ -542,16 +635,18 @@ func file_proto_manga_manga_proto_rawDescGZIP() []byte {
 	return file_proto_manga_manga_proto_rawDescData
 }
 
-var file_proto_manga_manga_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_proto_manga_manga_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_proto_manga_manga_proto_goTypes = []any{
-	(*Chapter)(nil),               // 0: manga.Chapter
-	(*Manga)(nil),                 // 1: manga.Manga
-	(*MangaListRequest)(nil),      // 2: manga.MangaListRequest
-	(*MangaListResponse)(nil),     // 3: manga.MangaListResponse
-	(*MangaDetailRequest)(nil),    // 4: manga.MangaDetailRequest
-	(*MangaDetailResponse)(nil),   // 5: manga.MangaDetailResponse
-	(*MangaChaptersRequest)(nil),  // 6: manga.MangaChaptersRequest
-	(*MangaChaptersResponse)(nil), // 7: manga.MangaChaptersResponse
+	(*Chapter)(nil),                  // 0: manga.Chapter
+	(*Manga)(nil),                    // 1: manga.Manga
+	(*MangaListRequest)(nil),         // 2: manga.MangaListRequest
+	(*MangaListResponse)(nil),        // 3: manga.MangaListResponse
+	(*MangaDetailRequest)(nil),       // 4: manga.MangaDetailRequest
+	(*MangaDetailResponse)(nil),      // 5: manga.MangaDetailResponse
+	(*MangaChaptersRequest)(nil),     // 6: manga.MangaChaptersRequest
+	(*MangaChaptersResponse)(nil),    // 7: manga.MangaChaptersResponse
+	(*CheckMangaExistsRequest)(nil),  // 8: manga.CheckMangaExistsRequest
+	(*CheckMangaExistsResponse)(nil), // 9: manga.CheckMangaExistsResponse
 }
 var file_proto_manga_manga_proto_depIdxs = []int32{
 	1, // 0: manga.MangaListResponse.mangas:type_name -> manga.Manga
@@ -560,11 +655,13 @@ var file_proto_manga_manga_proto_depIdxs = []int32{
 	2, // 3: manga.GRPCMangaService.GetMangas:input_type -> manga.MangaListRequest
 	4, // 4: manga.GRPCMangaService.GetMangaDetail:input_type -> manga.MangaDetailRequest
 	6, // 5: manga.GRPCMangaService.GetMangaChapters:input_type -> manga.MangaChaptersRequest
-	3, // 6: manga.GRPCMangaService.GetMangas:output_type -> manga.MangaListResponse
-	5, // 7: manga.GRPCMangaService.GetMangaDetail:output_type -> manga.MangaDetailResponse
-	7, // 8: manga.GRPCMangaService.GetMangaChapters:output_type -> manga.MangaChaptersResponse
-	6, // [6:9] is the sub-list for method output_type
-	3, // [3:6] is the sub-list for method input_type
+	8, // 6: manga.GRPCMangaService.CheckMangaExists:input_type -> manga.CheckMangaExistsRequest
+	3, // 7: manga.GRPCMangaService.GetMangas:output_type -> manga.MangaListResponse
+	5, // 8: manga.GRPCMangaService.GetMangaDetail:output_type -> manga.MangaDetailResponse
+	7, // 9: manga.GRPCMangaService.GetMangaChapters:output_type -> manga.MangaChaptersResponse
+	9, // 10: manga.GRPCMangaService.CheckMangaExists:output_type -> manga.CheckMangaExistsResponse
+	7, // [7:11] is the sub-list for method output_type
+	3, // [3:7] is the sub-list for method input_type
 	3, // [3:3] is the sub-list for extension type_name
 	3, // [3:3] is the sub-list for extension extendee
 	0, // [0:3] is the sub-list for field type_name
@@ -581,7 +678,7 @@ func file_proto_manga_manga_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_manga_manga_proto_rawDesc), len(file_proto_manga_manga_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

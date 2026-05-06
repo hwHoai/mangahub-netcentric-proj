@@ -41,3 +41,5 @@ Khi có thiết bị khác cập nhật tiến trình đọc, server sẽ gửi 
    ```
 
 3. **Check Terminal 1**: Bạn sẽ thấy message `on_new_read_progress` được đẩy về.
+
+

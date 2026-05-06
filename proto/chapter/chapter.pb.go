@@ -157,6 +157,134 @@ func (x *GetChapterByIDResponse) GetUpdatedAt() string {
 	return ""
 }
 
+type CreateChapterRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	MangaId       string                 `protobuf:"bytes,2,opt,name=manga_id,json=mangaId,proto3" json:"manga_id,omitempty"`
+	ChapterNumber float64                `protobuf:"fixed64,3,opt,name=chapter_number,json=chapterNumber,proto3" json:"chapter_number,omitempty"`
+	Title         string                 `protobuf:"bytes,4,opt,name=title,proto3" json:"title,omitempty"`
+	PagesData     string                 `protobuf:"bytes,5,opt,name=pages_data,json=pagesData,proto3" json:"pages_data,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateChapterRequest) Reset() {
+	*x = CreateChapterRequest{}
+	mi := &file_proto_chapter_chapter_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateChapterRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateChapterRequest) ProtoMessage() {}
+
+func (x *CreateChapterRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_chapter_chapter_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateChapterRequest.ProtoReflect.Descriptor instead.
+func (*CreateChapterRequest) Descriptor() ([]byte, []int) {
+	return file_proto_chapter_chapter_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *CreateChapterRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *CreateChapterRequest) GetMangaId() string {
+	if x != nil {
+		return x.MangaId
+	}
+	return ""
+}
+
+func (x *CreateChapterRequest) GetChapterNumber() float64 {
+	if x != nil {
+		return x.ChapterNumber
+	}
+	return 0
+}
+
+func (x *CreateChapterRequest) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *CreateChapterRequest) GetPagesData() string {
+	if x != nil {
+		return x.PagesData
+	}
+	return ""
+}
+
+type CreateChapterResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Id            string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateChapterResponse) Reset() {
+	*x = CreateChapterResponse{}
+	mi := &file_proto_chapter_chapter_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateChapterResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateChapterResponse) ProtoMessage() {}
+
+func (x *CreateChapterResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_chapter_chapter_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateChapterResponse.ProtoReflect.Descriptor instead.
+func (*CreateChapterResponse) Descriptor() ([]byte, []int) {
+	return file_proto_chapter_chapter_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *CreateChapterResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *CreateChapterResponse) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
 var File_proto_chapter_chapter_proto protoreflect.FileDescriptor
 
 const file_proto_chapter_chapter_proto_rawDesc = "" +
@@ -175,9 +303,20 @@ const file_proto_chapter_chapter_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x06 \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\a \x01(\tR\tupdatedAt2g\n" +
+	"updated_at\x18\a \x01(\tR\tupdatedAt\"\x9d\x01\n" +
+	"\x14CreateChapterRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
+	"\bmanga_id\x18\x02 \x01(\tR\amangaId\x12%\n" +
+	"\x0echapter_number\x18\x03 \x01(\x01R\rchapterNumber\x12\x14\n" +
+	"\x05title\x18\x04 \x01(\tR\x05title\x12\x1d\n" +
+	"\n" +
+	"pages_data\x18\x05 \x01(\tR\tpagesData\"A\n" +
+	"\x15CreateChapterResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x0e\n" +
+	"\x02id\x18\x02 \x01(\tR\x02id2\xb7\x01\n" +
 	"\x12GRPCChapterService\x12Q\n" +
-	"\x0eGetChapterByID\x12\x1e.chapter.GetChapterByIDRequest\x1a\x1f.chapter.GetChapterByIDResponseB\x18Z\x16mangahub/proto/chapterb\x06proto3"
+	"\x0eGetChapterByID\x12\x1e.chapter.GetChapterByIDRequest\x1a\x1f.chapter.GetChapterByIDResponse\x12N\n" +
+	"\rCreateChapter\x12\x1d.chapter.CreateChapterRequest\x1a\x1e.chapter.CreateChapterResponseB\x18Z\x16mangahub/proto/chapterb\x06proto3"
 
 var (
 	file_proto_chapter_chapter_proto_rawDescOnce sync.Once
@@ -191,16 +330,20 @@ func file_proto_chapter_chapter_proto_rawDescGZIP() []byte {
 	return file_proto_chapter_chapter_proto_rawDescData
 }
 
-var file_proto_chapter_chapter_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_proto_chapter_chapter_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_proto_chapter_chapter_proto_goTypes = []any{
 	(*GetChapterByIDRequest)(nil),  // 0: chapter.GetChapterByIDRequest
 	(*GetChapterByIDResponse)(nil), // 1: chapter.GetChapterByIDResponse
+	(*CreateChapterRequest)(nil),   // 2: chapter.CreateChapterRequest
+	(*CreateChapterResponse)(nil),  // 3: chapter.CreateChapterResponse
 }
 var file_proto_chapter_chapter_proto_depIdxs = []int32{
 	0, // 0: chapter.GRPCChapterService.GetChapterByID:input_type -> chapter.GetChapterByIDRequest
-	1, // 1: chapter.GRPCChapterService.GetChapterByID:output_type -> chapter.GetChapterByIDResponse
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
+	2, // 1: chapter.GRPCChapterService.CreateChapter:input_type -> chapter.CreateChapterRequest
+	1, // 2: chapter.GRPCChapterService.GetChapterByID:output_type -> chapter.GetChapterByIDResponse
+	3, // 3: chapter.GRPCChapterService.CreateChapter:output_type -> chapter.CreateChapterResponse
+	2, // [2:4] is the sub-list for method output_type
+	0, // [0:2] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -217,7 +360,7 @@ func file_proto_chapter_chapter_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_chapter_chapter_proto_rawDesc), len(file_proto_chapter_chapter_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

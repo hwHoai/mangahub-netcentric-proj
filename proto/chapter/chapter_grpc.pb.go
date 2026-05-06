@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	GRPCChapterService_GetChapterByID_FullMethodName = "/chapter.GRPCChapterService/GetChapterByID"
+	GRPCChapterService_CreateChapter_FullMethodName  = "/chapter.GRPCChapterService/CreateChapter"
 )
 
 // GRPCChapterServiceClient is the client API for GRPCChapterService service.
@@ -27,6 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type GRPCChapterServiceClient interface {
 	GetChapterByID(ctx context.Context, in *GetChapterByIDRequest, opts ...grpc.CallOption) (*GetChapterByIDResponse, error)
+	CreateChapter(ctx context.Context, in *CreateChapterRequest, opts ...grpc.CallOption) (*CreateChapterResponse, error)
 }
 
 type gRPCChapterServiceClient struct {
@@ -47,11 +49,22 @@ func (c *gRPCChapterServiceClient) GetChapterByID(ctx context.Context, in *GetCh
 	return out, nil
 }
 
+func (c *gRPCChapterServiceClient) CreateChapter(ctx context.Context, in *CreateChapterRequest, opts ...grpc.CallOption) (*CreateChapterResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateChapterResponse)
+	err := c.cc.Invoke(ctx, GRPCChapterService_CreateChapter_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GRPCChapterServiceServer is the server API for GRPCChapterService service.
 // All implementations must embed UnimplementedGRPCChapterServiceServer
 // for forward compatibility.
 type GRPCChapterServiceServer interface {
 	GetChapterByID(context.Context, *GetChapterByIDRequest) (*GetChapterByIDResponse, error)
+	CreateChapter(context.Context, *CreateChapterRequest) (*CreateChapterResponse, error)
 	mustEmbedUnimplementedGRPCChapterServiceServer()
 }
 
@@ -64,6 +77,9 @@ type UnimplementedGRPCChapterServiceServer struct{}
 
 func (UnimplementedGRPCChapterServiceServer) GetChapterByID(context.Context, *GetChapterByIDRequest) (*GetChapterByIDResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetChapterByID not implemented")
+}
+func (UnimplementedGRPCChapterServiceServer) CreateChapter(context.Context, *CreateChapterRequest) (*CreateChapterResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateChapter not implemented")
 }
 func (UnimplementedGRPCChapterServiceServer) mustEmbedUnimplementedGRPCChapterServiceServer() {}
 func (UnimplementedGRPCChapterServiceServer) testEmbeddedByValue()                            {}
@@ -104,6 +120,24 @@ func _GRPCChapterService_GetChapterByID_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GRPCChapterService_CreateChapter_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateChapterRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GRPCChapterServiceServer).CreateChapter(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GRPCChapterService_CreateChapter_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GRPCChapterServiceServer).CreateChapter(ctx, req.(*CreateChapterRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // GRPCChapterService_ServiceDesc is the grpc.ServiceDesc for GRPCChapterService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -114,6 +148,10 @@ var GRPCChapterService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetChapterByID",
 			Handler:    _GRPCChapterService_GetChapterByID_Handler,
+		},
+		{
+			MethodName: "CreateChapter",
+			Handler:    _GRPCChapterService_CreateChapter_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

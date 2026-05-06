@@ -2,12 +2,23 @@ package routes
 
 import (
 	"crypto/rsa"
+	"log"
+	manga_services_impl "mangahub/internal/manga/impl"
+	udp_services_impl "mangahub/internal/udp/impl"
+	user_services_impl "mangahub/internal/user/impl"
 	"mangahub/pkg/clients"
 
 	"github.com/gin-gonic/gin"
 )
 
 func SetupRoutes(r *gin.Engine, privateKey *rsa.PrivateKey, publicKey *rsa.PublicKey) {
+	// 0. Setup shared clients
+	mangaDexClient := clients.NewMangaDexClient()
+	udpNotificationServices, err := udp_services_impl.NewNotificationServicesImpl()
+	if err != nil {
+		log.Printf("Warning: failed to initialize UDP notification services: %v", err)
+	}
+
 	//1. Define gRPC clients for services
 	grpcUserClient, _, err := clients.NewUserGRPCClient()
 	if err != nil {
@@ -36,7 +47,13 @@ func SetupRoutes(r *gin.Engine, privateKey *rsa.PrivateKey, publicKey *rsa.Publi
 
 	tcpChapterSyncClient := clients.NewTCPChapterSyncClient()
 
-	//2. Route definition
+	// 2. Initialize Services
+	mangaService := manga_services_impl.NewMangaService(grpcMangaClient)
+	chapterService := manga_services_impl.NewChapterService(grpcChapterClient, udpNotificationServices, mangaDexClient)
+	userMangaService := user_services_impl.NewUserMangaService(grpcUserMangaClient)
+	userService := user_services_impl.NewUserService(grpcUserClient)
+
+	//3. Route definition
 	v1 := r.Group("api/v1")
 	
 	// Health Check
@@ -46,21 +63,23 @@ func SetupRoutes(r *gin.Engine, privateKey *rsa.PrivateKey, publicKey *rsa.Publi
 		})
 	})
 	public_route_opts := &PublicRouteOpts{
-		gRPCUserClient:    grpcUserClient,
-		gRPCSessionClient: grpcSessionClient,
-		GRPCMangaClient:   grpcMangaClient,
-		GRPCChapterClient: grpcChapterClient,
+		GRPCUserClient:    grpcUserClient,
+		GRPCSessionClient: grpcSessionClient,
+		MangaService:      mangaService,
+		ChapterService:    chapterService,
+		UserService:       userService,
 		PrivateKey:        privateKey,
 		PublicKey:         publicKey,
 	}
 	SetupPublicRoutes(v1, public_route_opts)
-
+ 
 	private_route_opts := &PrivateRouteOpts{
 		PublicKey:            publicKey,
-		GRPCUserMangaClient:  grpcUserMangaClient,
+		UserMangaService:     userMangaService,
+		UserService:            userService,
 		GRPCUserClient:       grpcUserClient,
 		GRPCSessionClient:    grpcSessionClient,
-		GRPCChapterClient:    grpcChapterClient,
+		ChapterService:       chapterService,
 		TCPChapterSyncClient: tcpChapterSyncClient,
 	}
 	SetupPrivateRoutes(v1, private_route_opts)

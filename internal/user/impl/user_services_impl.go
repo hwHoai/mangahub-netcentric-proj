@@ -7,13 +7,17 @@ import (
 	user_proto "mangahub/proto/user"
 )
 
-type MeServiceImpl struct {
+type UserServiceImpl struct {
 	GRPCUserClient user_proto.GRPCUserServiceClient
 }
 
-var _ user.MeService = (*MeServiceImpl)(nil)
+func NewUserService(grpcUserClient user_proto.GRPCUserServiceClient) user.UserService {
+	return &UserServiceImpl{GRPCUserClient: grpcUserClient}
+}
 
-func (s *MeServiceImpl) GetMe(userID string) (*dto.UserProfileResponse, dto.ExceptionDTO) {
+var _ user.UserService = (*UserServiceImpl)(nil)
+
+func (s *UserServiceImpl) GetUserDetails(userID string) (*dto.UserProfileResponse, dto.ExceptionDTO) {
 	if userID == "" {
 		return nil, dto.ExceptionDTO{Code: 401, Message: "Unauthorized"}
 	}

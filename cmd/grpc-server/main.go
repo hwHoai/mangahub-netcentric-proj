@@ -4,10 +4,11 @@ import (
 	"log"
 
 	grpc_services_impl "mangahub/internal/grpc/impl"
-	dbImpl "mangahub/pkg/database/impl"
+	dbImpl "mangahub/internal/database/impl"
 	"mangahub/pkg/seeder"
 	"mangahub/proto/chapter"
 	"mangahub/proto/manga"
+	"mangahub/proto/message"
 	"mangahub/proto/session"
 	"mangahub/proto/user"
 	"mangahub/proto/user_manga"
@@ -103,4 +104,7 @@ func registerServices(grpcServer *grpc.Server, db *gorm.DB) {
 
 	chapterService := grpc_services_impl.NewGRPCChapterService(db)
 	chapter.RegisterGRPCChapterServiceServer(grpcServer, chapterService)
+
+	messageService := grpc_services_impl.NewGRPCMessageService(db)
+	message.RegisterGRPCMessageServiceServer(grpcServer, messageService)
 }
