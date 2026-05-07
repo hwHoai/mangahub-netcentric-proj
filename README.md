@@ -79,6 +79,7 @@ MangaHub operates as a cluster of specialized gateway services communicating int
 <summary><b>📊 Click to view TCP Evidence</b></summary>
 
 #### Real-time Processing (Ping-Pong-Ack Loop) & RAM Usage (2,000 Connections)
+
 <video src="https://github.com/user-attachments/assets/ef97bf97-a647-434a-b0f4-bbc826a30b9d" controls="controls" style="max-width: 720px;"></video>
 
 ![TCP Ping Pong GIF](benchmark_evd/tcp_ping_pong.gif)
@@ -93,7 +94,8 @@ MangaHub operates as a cluster of specialized gateway services communicating int
 <summary><b>📊 Click to view UDP Evidence</b></summary>
 
 #### High-Speed Processing (2,000 packets in 3.2s)
-<video src="[benchmark_evd/ten_video_cua_bac.mp4](https://github.com/user-attachments/assets/cb768e3e-a043-45cc-885d-50260092575)" controls="controls" style="max-width: 720px;"></video>
+
+<video src="https://github.com/user-attachments/assets/cb768e3e-a043-45cc-885d-50260092575" controls="controls" style="max-width: 720px;"></video>
 
 ![UDP Processing GIF](benchmark_evd/udp_processing.gif)
 </details>
