@@ -95,7 +95,7 @@ MangaHub operates as a cluster of specialized gateway services communicating int
 
 #### High-Speed Processing (2,000 packets in 3.2s)
 
-<video src="https://github.com/user-attachments/assets/cb768e3e-a043-45cc-885d-50260092575" controls="controls" style="max-width: 720px;"></video>
+<video src="https://github.com/user-attachments/assets/cb768e3e-a043-45cc-885d-50260092575c" controls="controls" style="max-width: 720px;"></video>
 
 ![UDP Processing GIF](benchmark_evd/udp_processing.gif)
 </details>
