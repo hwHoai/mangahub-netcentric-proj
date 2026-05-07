@@ -1,0 +1,86 @@
+@baseUrl = http://localhost:8081
+@mangaId = 29b2a759-ab30-4e71-a149-3e853756ce75
+@chapterId = d2f5ea0b-9e2f-4d08-aaed-5166e047e1a7
+@token = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NzgxNzQ4OTMsImlhdCI6MTc3ODE3Mzk5Mywic3ViIjoiZTE2OWY5ZjUtMzM2NS00OGQ0LTk4NWUtYzhmYzE0YTAyOTA5In0.zTyOgNOHY6VGs-RyoujDf78wPubGdQDt1AKxhEBjEAf97V9MRZ9wv1bfVUOEdgXi5wE3gFxEuoSdKKRIHpzNj2-jXKRiRzGxOmveShqU494C7rohfiOslOqiUtAGetK17jWrf5yImYFy7eqZVuIrDG4KUX742cfbdPKgMtCgihqVIyhaFNGhPRQyfwbSEVrG8xRvewiF_sPXhc12b12jbOyqivHchAJzgMxYw5R2n9wwWhbOvM6SawHkXGGSmoSJBQgbUm42LiIY0Z6rrx1pK456UXkTPzi2vWFjr1w8E4We6EPLy4llUi21cTw3d-T0I6umDa7WMSgzNw56Mc7qGA
+@username = testuser2
+@password = testpassword2
+
+### Health check
+GET {{baseUrl}}/api/v1/health
+
+### Signup by username
+POST {{baseUrl}}/api/v1/signup
+Content-Type: application/json
+
+{
+    "username": "{{username}}",
+    "password": "{{password}}"
+}
+
+### Login by username
+POST {{baseUrl}}/api/v1/login
+Content-Type: application/json
+
+{
+    "username": "{{username}}",
+    "password": "{{password}}"
+}
+
+### Refresh token
+POST {{baseUrl}}/api/v1/auth/refresh
+Content-Type: application/json
+
+{
+    "refresh_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Nzg3Nzg3NjQsImlhdCI6MTc3ODE3Mzk2NCwic3ViIjoiZTE2OWY5ZjUtMzM2NS00OGQ0LTk4NWUtYzhmYzE0YTAyOTA5In0.EnzL_r-5vRKU_jtTLIPMy5Jubib3WlSA7uoNjN--4e0cgXQWBta6_-vD5LWvfvWNe-Z6qKfHnDfrct207n5rLgnOXxV6A-dRWWHZOWH53nGbMAi3VZyeLz1Dr58-tfIiWRIAVia-30fhyfAex8qgn_UMl6yE_4SGnhtDB-KwapWpitsrir7pGcEMl-Jl93X2evFnDDr3nlyAcqAkXbYkEtmDEL6lsVrPsmVsaHLQbTaaKI9ACtzgOWmYQr4hJuLWr0xkvFWVjLsI_8VUImtSdG6DG3CTVVPB6qFjo-2IY7JQBJm6qpJuwYHM90A9WYLwqafx3diRtLA4dGwCVO2tUA"
+}
+
+### List mangas (with pagination)
+GET {{baseUrl}}/api/v1/mangas?limit=10&offset=0
+
+### Get manga detail
+GET {{baseUrl}}/api/v1/mangas/{{mangaId}}
+
+### Get manga chapters
+GET {{baseUrl}}/api/v1/mangas/{{mangaId}}/chapters
+
+### Read chapter (Public)
+GET {{baseUrl}}/api/v1/chapters/{{chapterId}}
+
+###########################################################
+# User Manga APIs (Require Authentication)
+###########################################################
+
+### Follow a manga
+POST {{baseUrl}}/api/v1/user/mangas/{{mangaId}}/follow
+Authorization: Bearer {{token}}
+
+### Unfollow a manga
+DELETE {{baseUrl}}/api/v1/user/mangas/{{mangaId}}/follow
+Authorization: Bearer {{token}}
+
+### Get followed mangas
+GET {{baseUrl}}/api/v1/user/mangas/following?limit=10&offset=0
+Authorization: Bearer {{token}}
+
+### Sync/Create new chapter from MangaDex (Trigger UDP Notification)
+# Manga ID: 29b2a759-ab30-4e71-a149-3e853756ce75 (Chainsaw Man)
+# Chapter ID: d2f5ea0b-9e2f-4d08-aaed-5166e047e1a7 (Chapter 1)
+POST {{baseUrl}}/api/v1/mangas/{{mangaId}}/chapters
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "mangadex_chapter_id": "d2f5ea0b-9e2f-4d08-aaed-5166e047e1a7"
+}
+
+### Read chapter (Authenticated - Triggers TCP Sync)
+GET {{baseUrl}}/api/v1/user/chapters/{{chapterId}}
+Authorization: Bearer {{token}}
+
+### Get current user profile
+GET {{baseUrl}}/api/v1/auth/me
+Authorization: Bearer {{token}}
+
+### Get reading history
+GET {{baseUrl}}/api/v1/user/history?limit=10&offset=0
+Authorization: Bearer {{token}}

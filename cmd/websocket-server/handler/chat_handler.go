@@ -32,7 +32,7 @@ func (h *ChatHandler) HandleWSChatTunnel(c *gin.Context) {
 		return
 	}
 
-	userIDVal, _ := c.Get("userID")
+	userIDVal, _ := c.Get("user_id")
 	userID, ok := userIDVal.(string)
 	if !ok {
 		conn.WriteJSON(gin.H{"error": "invalid user context"})

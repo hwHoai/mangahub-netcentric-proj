@@ -6,6 +6,7 @@ import (
 
 	"fmt"
 	"mangahub/internal/grpc"
+	"mangahub/internal/repository"
 	repository_impl "mangahub/internal/repository/impl"
 	"mangahub/pkg/models"
 	"mangahub/pkg/models/enums"
@@ -18,13 +19,21 @@ import (
 
 type GRPCUserMangaService struct {
 	user_manga.UnimplementedGRPCUserMangaServiceServer
-	db *gorm.DB
+	db              *gorm.DB
+	followerRepo    repository.MangaFollowerRepository
+	chapterRepo     repository.ChapterRepository
+	progressRepo    repository.ReadingProgressRepository
 }
 
 var _ grpc.GRPCUserMangaService = (*GRPCUserMangaService)(nil)
 
 func NewGRPCUserMangaService(db *gorm.DB) *GRPCUserMangaService {
-	return &GRPCUserMangaService{db: db}
+	return &GRPCUserMangaService{
+		db:           db,
+		followerRepo: repository_impl.NewMangaFollowerRepository(db),
+		chapterRepo:  repository_impl.NewChapterRepositoryImpl(db),
+		progressRepo: repository_impl.NewReadingProgressRepository(db),
+	}
 }
 
 func (s *GRPCUserMangaService) FollowManga(ctx context.Context, req *user_manga.FollowMangaRequest) (*user_manga.FollowMangaResponse, error) {
@@ -32,9 +41,7 @@ func (s *GRPCUserMangaService) FollowManga(ctx context.Context, req *user_manga.
 		return nil, fmt.Errorf("user_id and manga_id are required")
 	}
 
-	followerRepo := repository_impl.NewMangaFollowerRepository(s.db)
-
-	follower, err := followerRepo.FollowManga(req.UserId, req.MangaId)
+	follower, err := s.followerRepo.FollowManga(req.UserId, req.MangaId)
 	if err != nil {
 		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
 			return nil, fmt.Errorf("already following this manga")
@@ -54,8 +61,7 @@ func (s *GRPCUserMangaService) UnfollowManga(ctx context.Context, req *user_mang
 		return nil, fmt.Errorf("user_id and manga_id are required")
 	}
 
-	followerRepo := repository_impl.NewMangaFollowerRepository(s.db)
-	err := followerRepo.UnfollowManga(req.UserId, req.MangaId)
+	err := s.followerRepo.UnfollowManga(req.UserId, req.MangaId)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unfollow manga: %w", err)
 	}
@@ -70,8 +76,7 @@ func (s *GRPCUserMangaService) GetFollowingMangas(ctx context.Context, req *user
 		return nil, fmt.Errorf("user_id is required")
 	}
 
-	followerRepo := repository_impl.NewMangaFollowerRepository(s.db)
-	mangas, err := followerRepo.GetFollowingMangas(req.UserId, int(req.Limit), int(req.Offset))
+	mangas, err := s.followerRepo.GetFollowingMangas(req.UserId, int(req.Limit), int(req.Offset))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get following mangas: %w", err)
 	}
@@ -102,14 +107,12 @@ func (s *GRPCUserMangaService) StoreReadingProgress(ctx context.Context, req *us
 	}
 
 	// 1. Look up the chapter to get its manga_id and chapter_number
-	chapterRepo := repository_impl.NewChapterRepositoryImpl(s.db)
-	chapter, err := chapterRepo.GetChapterByID(req.ChapterId)
+	chapter, err := s.chapterRepo.GetChapterByID(req.ChapterId)
 	if err != nil {
 		return nil, fmt.Errorf("chapter not found: %w", err)
 	}
 
 	// 2. Upsert reading progress
-	readingProgressRepo := repository_impl.NewReadingProgressRepository(s.db)
 	progress := models.NewReadingProgressModel(
 		req.UserId,
 		chapter.MangaID,
@@ -117,7 +120,7 @@ func (s *GRPCUserMangaService) StoreReadingProgress(ctx context.Context, req *us
 		int(chapter.ChapterNumber),
 	)
 
-	savedProgress, err := readingProgressRepo.UpsertReadingProgress(progress)
+	savedProgress, err := s.progressRepo.UpsertReadingProgress(progress)
 	if err != nil {
 		return nil, fmt.Errorf("failed to store reading progress: %w", err)
 	}
@@ -136,8 +139,7 @@ func (s *GRPCUserMangaService) GetReadingHistory(ctx context.Context, req *user_
 		return nil, fmt.Errorf("user_id is required")
 	}
 
-	readingProgressRepo := repository_impl.NewReadingProgressRepository(s.db)
-	history, err := readingProgressRepo.GetReadingHistory(req.UserId, int(req.Limit), int(req.Offset))
+	history, err := s.progressRepo.GetReadingHistory(req.UserId, int(req.Limit), int(req.Offset))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get reading history: %w", err)
 	}
@@ -173,8 +175,7 @@ func (s *GRPCUserMangaService) GetFollowers(ctx context.Context, req *user_manga
 		return nil, fmt.Errorf("manga_id is required")
 	}
 
-	followerRepo := repository_impl.NewMangaFollowerRepository(s.db)
-	userIDs, err := followerRepo.GetFollowers(req.MangaId)
+	userIDs, err := s.followerRepo.GetFollowers(req.MangaId)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get followers: %w", err)
 	}

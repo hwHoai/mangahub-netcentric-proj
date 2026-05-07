@@ -1,119 +1,268 @@
-# 📖 MangaHub
-
-**A High-Performance, Distributed Manga Tracking Platform Built with Go.**
+# MangaHub — High-Throughput Distributed Content Tracking Platform
 
 [![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go)](https://golang.org/)
-[![Architecture](https://img.shields.io/badge/Architecture-Microservices-FF6F00?style=flat)](#architecture)
-[![Protocols](https://img.shields.io/badge/Protocols-REST%20%7C%20gRPC%20%7C%20TCP%20%7C%20UDP%20%7C%20WS-blue)](#core-services)
-
-## 🎯 Overview
-
-MangaHub is not just another CRUD application; it's a showcase of **advanced network programming** and **scalable system architecture**. Designed as a microservices-based platform, it efficiently manages manga libraries, tracks reading progress in real-time, and handles concurrent user interactions across multiple network protocols.
-
-Whether you are evaluating architectural decisions, code quality, or networking concepts, MangaHub demonstrates a deep understanding of how disparate systems communicate reliably in a modern backend environment.
-
-## 🚀 Why This Project Stands Out 
-
-- **Protocol Mastery**: Successfully implements and orchestrates **five distinct network protocols** (HTTP/REST, gRPC, TCP, UDP, WebSocket) within a unified ecosystem.
-- **Clean & Modular Architecture**: Adheres strictly to Domain-Driven Design (DDD) principles and interface-based implementations, ensuring high testability and maintainability.
-- **Concurrency & Thread Safety**: Leverages Go's powerful concurrency model (goroutines, channels) with custom Connection Pools to handle simultaneous TCP/UDP broadcasts safely.
-- **Automated Data Pipeline**: Features a robust seeder that reliably consumes external APIs (MangaDex), processes rate-limited requests, and maps complex JSON relationships into a normalized relational database.
+[![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen?style=flat)](#)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ---
 
-## 🏗 System Architecture
-
-MangaHub operates as a cluster of specialized services, each optimized for its specific transport layer:
-
-### Core Services
-1. **🌐 HTTP REST API Server (Gateway)**: Built with Gin, serving as the primary entry point for client applications. Handles JWT-based authentication and routes business logic to internal services.
-2. **🔌 gRPC Internal Service**: The high-speed backbone of the system. Manages all direct database transactions (SQLite + GORM) via Protocol Buffers, decoupling the data layer from public-facing APIs.
-3. **⚡ TCP Progress Sync Server**: Maintains persistent connections to broadcast live reading progress updates across user devices securely.
-4. **📡 UDP Notification System**: A lightweight broadcasting server designed to blast out "New Chapter" alerts with minimal overhead. *(In active development)*
-5. **💬 WebSocket Chat Hub**: Enables real-time, low-latency community discussions for specific manga titles. *(In active development)*
-
-## 💻 Technology Stack
-
-- **Core Language**: Go (Golang)
-- **API Framework**: Gin Web Framework
-- **RPC Framework**: gRPC & Protocol Buffers (Protobuf)
-- **Database & ORM**: SQLite3, GORM
-- **Security**: RSA Key Pairs, JWT (JSON Web Tokens) for stateless authentication.
+## Table of Contents
+1. [Executive Summary](#1-executive-summary)
+2. [System Architecture](#2-system-architecture)
+3. [Performance & Benchmarks](#3-performance--benchmarks) 🚀
+4. [Core Capabilities](#4-core-capabilities)
+5. [Project Structure](#5-project-structure)
+6. [Technology Stack](#6-technology-stack)
+7. [Getting Started](#7-getting-started)
+8. [API Documentation](#8-api-documentation)
+9. [License & Contact](#9-license)
 
 ---
 
-## 🛠 Getting Started
+## 1. Executive Summary
+**MangaHub** is a distributed backend service built to handle **high-frequency user telemetry** and **real-time interactions**. Instead of routing all traffic through a bottlenecked REST API, it utilizes a multi-protocol approach (**HTTP**, **TCP**, **UDP**, **gRPC**, **WebSocket**) matching the appropriate transport layer to the specific I/O profile of each feature.
+
+### Design Philosophy
+The architecture is rooted in **separation of concerns**. By strictly decoupling the external network gateways from the core business logic via an **internal gRPC backbone**, the system isolates failures. *An I/O spike in the WebSocket chat room will not degrade the performance of the HTTP API*. This modularity ensures the codebase remains **highly testable** and prepared for **horizontal scaling**.
+
+---
+
+## 2. System Architecture
+
+MangaHub operates as a cluster of specialized gateway services communicating internally via a high-speed gRPC backbone.
+
+![System Architecture](docs/architecture.png)
+
+### Component Breakdown
+
+*   **`api-server` (Public API Gateway)**: The primary entry point for all client applications, managing user identity and providing high-speed access to the content library and metadata.
+*   **`tcp-server` (Cross-device, Real-time Sync)**: Enables seamless cross-device synchronization, ensuring a user's reading progress is instantly updated and accessible across their entire device ecosystem.
+*   **`websocket-server` (Community Chat)**: Facilitates real-time, room-based social interactions, providing a low-latency environment for community engagement.
+*   **`udp-server` (Smart Notifications)**: Delivers high-priority alerts for new chapters and messages with extreme efficiency and guaranteed delivery.
+*   **`grpc-server` (Core Data Backbone)**: The system's "source of truth," orchestrating secure data transactions and maintaining consistency across all distributed components.
+
+---
+
+## 3. Performance & Benchmarks 🚀
+
+### 3.1 Test Environment & Tools
+*   **Hardware**: Windows 11, Intel Core i7 gen 10th (Ice-lake), 8GB RAM.
+*   **Testing Tools**: 
+    *   `hey` for HTTP Throughput.
+    *   Custom Go stress-test scripts for TCP & UDP reliability.
+
+### 3.2 HTTP API Throughput (REST via gRPC)
+*Tested with 100 concurrent users sending 20,000 requests to the `/api/v1/mangas` endpoint:*
+
+| Metric | Result |
+|:---|:---|
+| **Average Latency** | `29.0 ms` |
+| **p95 Latency** | `85.1 ms` |
+| **p99 Latency** | `131.4 ms` |
+| **Requests Per Second (RPS)** | `3,290+ req/sec` |
+
+<details>
+<summary><b>📊 Click to view HTTP Benchmark Evidence</b></summary>
+
+![HTTP Benchmark Evidence](benchmark_evd/http_rest_results.png)
+</details>
+
+### 3.3 Real-time Connections (TCP)
+*   **Concurrent Handling**: Successfully maintained **2,000+** active "Ping-Pong-Ack" sessions through the complete stack (Middleware -> Dispatcher -> Handler).
+*   **Memory Footprint**: The entire TCP server consumed only **~72.8 MB** of RAM during peak load.
+*   **Efficiency**: Approximately **~36 KB** per active connection.
+
+<details>
+<summary><b>📊 Click to view TCP Evidence</b></summary>
+
+#### Real-time Processing (Ping-Pong-Ack Loop) & RAM Usage (2,000 Connections)
+![TCP Ping Pong GIF](benchmark_evd/tcp_ping_pong.gif)
+</details>
+
+### 3.4 Reliability & Efficiency (UDP)
+*   **High-Speed Processing**: Processed **2,000 packets** in just **3.2 seconds**.
+*   **Reliability**: Achieved **100.00% delivery success** in local network benchmarks.
+*   **Minimal Footprint**: The UDP server operates with an extremely low memory overhead of only **~5.9 MB**.
+
+<details>
+<summary><b>📊 Click to view UDP Evidence</b></summary>
+
+#### High-Speed Processing (2,000 packets in 3.2s)
+![UDP Processing Gif](benchmark_evd/udp_processing.gif)
+</details>
+
+---
+
+## 4. Core Capabilities
+*   **Multi-Protocol Orchestration**: Seamlessly bridges 5 distinct protocols into a unified user experience.
+*   **Security at Scale**: RSA-signed JWTs with cross-protocol public key synchronization.
+*   **Resilient Data Pipelines**: Automated seeder for MangaDex with smart rate-limiting and backoff to ensure high-quality data ingestion.
+
+---
+
+## 5. Project Structure
+
+Following **Domain-Driven Design (DDD)** and **Clean Architecture**:
+
+```text
+manga_hub/
+├── cmd/                # Application Layer (Network Gateways)
+│   ├── api-server/
+│   ├── grpc-server/
+│   ├── tcp-server/
+│   ├── udp-server/
+│   └── websocket-server/
+├── internal/           # Protected Business Logic
+│   ├── auth/
+│   ├── database/
+│   ├── grpc/
+│   ├── manga/
+│   ├── repository/
+│   ├── tcp/
+│   ├── udp/
+│   ├── user/
+│   └── websocket/
+├── pkg/                # Shared Utilities & Clients
+│   ├── clients/
+│   ├── dto/
+│   ├── logger/
+│   ├── models/
+│   ├── seeder/
+│   └── utils/
+└── proto/              # RPC Contracts
+```
+
+<details>
+<summary><b>📂 Click to expand Full Directory Tree</b></summary>
+
+```text
+manga_hub/
+├── cmd/
+│   ├── api-server/
+│   │   ├── controllers/
+│   │   ├── middleware/
+│   │   └── routes/
+│   ├── grpc-server/
+│   ├── tcp-server/
+│   │   ├── dispatch/
+│   │   ├── handler/
+│   │   ├── middleware/
+│   │   └── utils/
+│   │       └── pools/
+│   │           └── impl/
+│   ├── udp-server/
+│   │   ├── dispatch/
+│   │   ├── handler/
+│   │   ├── middleware/
+│   │   └── utils/
+│   │       └── pools/
+│   │           └── impl/
+│   └── websocket-server/
+│       ├── handler/
+│       ├── middleware/
+│       └── utils/
+│           └── pool/
+│               └── impl/
+├── data/
+├── docs/
+├── internal/
+│   ├── auth/
+│   │   └── impl/
+│   ├── database/
+│   │   └── impl/
+│   ├── grpc/
+│   │   └── impl/
+│   ├── manga/
+│   │   └── impl/
+│   ├── repository/
+│   │   └── impl/
+│   ├── tcp/
+│   │   └── impl/
+│   ├── udp/
+│   │   └── impl/
+│   ├── user/
+│   │   └── impl/
+│   └── websocket/
+│       └── impl/
+├── pkg/
+│   ├── clients/
+│   ├── dto/
+│   ├── logger/
+│   ├── models/
+│   │   └── enums/
+│   ├── seeder/
+│   ├── types/
+│   └── utils/
+│       └── jwt/
+│           └── impl/
+└── proto/
+    ├── chapter/
+    ├── manga/
+    ├── message/
+    ├── session/
+    ├── user/
+    └── user_manga/
+```
+</details>
+
+### Architectural Patterns & Design Decisions
+
+MangaHub is built with a focus on **long-term maintainability** and **testability**. Below is the rationale behind our structural choices:
+
+#### 1. The `cmd/` vs. `internal/` Boundary
+*   **`cmd/` (Delivery Layer)**: Each sub-directory represents a standalone executable. This separation ensures that the "how" (HTTP, gRPC, TCP, etc.) is strictly separated from the "what" (Business Logic). We can replace the web framework or add a new protocol gateway without ever touching the core domain logic.
+*   **`internal/` (Protected Logic)**: By placing code here, we enforce Go's internal visibility rules. This prevents "circular dependency" nightmares and ensures that the core business logic cannot be accidentally imported by external projects, maintaining a clean and private API surface.
+
+#### 2. Interface-Based Design & `impl/` Pattern
+Every service and repository in MangaHub is defined by an **Interface**.
+*   **Decoupling**: Business services depend on abstractions, not concrete types.
+*   **Unit Testing**: This pattern allowed us to achieve high test coverage using **Testify Mocks**. We can test a service by injecting a mock repository, bypassing the need for a real database or network connection.
+*   **Implementation Isolation**: All concrete logic resides in `impl/` folders, keeping the root package of each domain clean and focused on definitions.
+
+#### 3. Repository Pattern
+Located within `internal/repository/`, this layer encapsulates all **GORM/SQLite** interactions. Business services never write raw SQL or interact directly with the database driver. This ensures that if we ever migrate from SQLite to PostgreSQL, we only need to change the code in one isolated package.
+
+#### 4. Handlers, Dispatchers & Pools (Socket Management)
+For non-HTTP protocols (TCP/UDP/WS), we implemented specialized patterns to manage concurrency:
+*   **Dispatchers**: Acts as a central router for incoming socket messages. It maps unique action strings (e.g., `chapter_sync:req_register_client`) to specific **Handlers**, keeping the main listener loop clean.
+*   **Connection Pools**: These are the state managers for distributed clients. They handle the complexity of thread-safe registration, unregistration, and **concurrent broadcasting** across thousands of goroutines using Go's `channels` and `sync` primitives.
+
+#### 5. `pkg/` (Shared Utilities)
+Contains truly agnostic utilities like the structured `logger`, `dto` (Data Transfer Objects), and cross-service `clients`. These are components that are generic enough to be moved to a separate library if needed.
+
+---
+
+## 6. Technology Stack
+*   **Language**: Go (Golang) 1.21+
+*   **Transport**: HTTP (Gin), gRPC (HTTP/2), TCP, UDP, WebSocket (Gorilla)
+*   **Database**: SQLite + GORM (Relational mapping with 12+ entities)
+*   **Observability**: Structured logging using `log/slog` for high-performance tracing.
+
+---
+
+## 7. Getting Started
 
 ### Prerequisites
-- Go 1.21 or higher installed.
-- Protocol Buffers compiler (`protoc`) if you plan to modify `.proto` files.
+*   Go 1.21 or higher.
+*   `make` utility installed.
 
-### Installation
-
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/your-username/manga_hub.git
-   cd manga_hub
-   ```
-
-2. **Configure Environment:**
-   Copy the example environment file and adjust if necessary.
-   ```bash
-   cp .env.example .env
-   ```
-
-3. **Install Dependencies:**
-   ```bash
-   go mod download
-   ```
-
-4. **Run the Services:**
-   We recommend running these in separate terminal windows to monitor logs effectively.
-   
-   *Start the Internal gRPC Server (Data Layer):*
-   ```bash
-   go run cmd/grpc-server/main.go
-   ```
-   
-   *Start the TCP Sync Server:*
-   ```bash
-   go run cmd/tcp-server/main.go
-   ```
-   
-   *Start the Public REST API:*
-   ```bash
-   go run cmd/api-server/main.go
-   ```
-
-*(Note: Data seeding from MangaDex runs automatically on the first gRPC server boot if the database is empty).*
+### Setup & Run
+1.  **Configure**: `cp .env.example .env`
+2.  **Initialize**: `go mod download`
+3.  **Run All Services**:
+    ```bash
+    make run-all
+    ```
 
 ---
 
-## ✅ Development Roadmap (To-Do for Full Score)
-
-### Phase 2: Network Protocols Completion
-- [ ] **UDP Notification System (15 pts)**
-  - [ ] Implement UDP Server client registration.
-  - [ ] Build broadcasting logic for "New Chapter" alerts.
-- [ ] **WebSocket Chat System (15 pts)**
-  - [ ] Set up `ChatHub` for WebSocket connection management.
-  - [ ] Implement real-time join/leave/message broadcasting.
-
-### Data Collection Requirements
-- [ ] **Web Scraping Practice**
-  - [ ] Write a simple script (e.g., scraping `quotes.toscrape.com`) to fulfill the "Educational Practice" grading criteria.
-
-### Target Bonus Features (Pick 1-2 for Extra Credit)
-- [ ] **Health Checks (5 pts)**: Formalize the `/health` endpoint for all microservices.
-- [ ] **Input Sanitization (5 pts)**: Add comprehensive payload validation to API endpoints.
-- [ ] **Data Caching with Redis (10 pts)**: Setup Redis to cache popular manga queries.
+## 8. API Documentation
+*   **Interaction Examples**: See [`request.http`](./request.http) or [`request_example.http`](./request_example.http) for full REST API usage.
+*   **Protobuf Specs**: Located in `/proto` for gRPC service definitions.
 
 ---
 
-## 🎓 Academic Context
-
-This project is developed as the capstone assignment for the **Net-centric Programming (IT096IU)** course at International University (VNU-HCM), instructed by Lê Thanh Sơn & Nguyễn Trung Nghĩa. It is engineered to meet and exceed the rigorous grading criteria for network protocol implementation, system integration, and code quality.
-
-## 📄 License
-
-This project is open-source and available under the [MIT License](LICENSE).
+## 9. License & Contact
+*   **License**: MIT
+*   **Author**: Đào Hữu Hoài
+*   **Email**: daohuuhoai2655@gmail.com

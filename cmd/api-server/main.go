@@ -14,6 +14,7 @@ import (
 	tcp_services_impl "mangahub/internal/tcp/impl"
 	udp_services_impl "mangahub/internal/udp/impl"
 	websocket_impl "mangahub/internal/websocket/impl"
+	"mangahub/pkg/logger"
 	jwt_impl "mangahub/pkg/utils/jwt/impl"
 
 	"github.com/gin-gonic/gin"
@@ -26,6 +27,10 @@ func main() {
 		// log.Fatalf will stop the program
 		log.Println("Warning: No .env file found, using environment variables if set")
 	}
+
+	// Initialize Logger
+	logger.Init(os.Getenv("ENV") == "prod", 0) // Default to LevelInfo
+	logger.Info("API Server starting...", "pid", os.Getpid())
 	tcpHost := os.Getenv("TCP_SERVER_HOST")
 	tcpPort := os.Getenv("TCP_SERVER_PORT")
 	if tcpHost == "" {
@@ -52,6 +57,18 @@ func main() {
 	// 3. Middleware (CORS, Logger, Recovery...)
 	r.Use(gin.Recovery())
 	r.Use(gin.Logger())
+
+	// Simple CORS Middleware
+	r.Use(func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+		c.Next()
+	})
 
 	// 4. Generate JWT key pair once at startup and keep private key in memory only for auth.
 	jwtUtil := jwt_impl.NewJWTUtil(nil)
@@ -126,15 +143,18 @@ func startServer(port string, srv *http.Server) {
 func shutdownServer(srv *http.Server) {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	// Block until a signal is received
 	<-quit
-	log.Println("Shutting down server...")
+
+	logger.Info("Shutting down server...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatal("Server forced to shutdown:", err)
+		logger.Error("Server forced to shutdown", "error", err)
 	}
 
-	log.Println("Server exiting")
+	logger.Info("Server exiting")
 }

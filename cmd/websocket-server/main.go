@@ -13,6 +13,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"mangahub/pkg/logger"
 )
 
 func main() {
@@ -25,6 +26,8 @@ func main() {
 	if port == "" {
 		port = "8085"
 	}
+	logger.Init(os.Getenv("ENV") == "prod", 0)
+	logger.Info("WebSocket Server starting...", "pid", os.Getpid())
 
 	// 2. Initialize gRPC clients
 	messageClient, grpcMsgConn, err := clients.NewMessageGRPCClient()

@@ -2,21 +2,20 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
-	"log"
 	"net"
 
 	"mangahub/cmd/udp-server/dispatch"
+	"mangahub/cmd/udp-server/utils/pool"
+	"mangahub/pkg/logger"
 	"mangahub/pkg/types"
-	udp_pool "mangahub/cmd/udp-server/utils/pools"
 )
 
 type NotificationHandler struct {
-	chapterPool udp_pool.UDPPool
-	messagePool udp_pool.UDPPool
+	chapterPool udp_pools.UDPPool
+	messagePool udp_pools.UDPPool
 }
 
-func NewNotificationHandler(chapterPool, messagePool udp_pool.UDPPool) *NotificationHandler {
+func NewNotificationHandler(chapterPool, messagePool udp_pools.UDPPool) *NotificationHandler {
 	return &NotificationHandler{
 		chapterPool: chapterPool,
 		messagePool: messagePool,
@@ -24,13 +23,13 @@ func NewNotificationHandler(chapterPool, messagePool udp_pool.UDPPool) *Notifica
 }
 
 func (h *NotificationHandler) ClientRegisterHandler(s *dispatch.UDPServer, clientAddr *net.UDPAddr, payload types.UDPMessage) {
-	fmt.Printf("Received client register request from %s: %+v\n", clientAddr, payload)
+	logger.Info("Received client register request", "addr", clientAddr.String())
 	var data struct {
 		UserID string `json:"user_id"`
 	}
 
 	if err := json.Unmarshal(payload.Payload, &data); err != nil {
-		fmt.Printf("Error unmarshaling client_register payload: %v\n", err)
+		logger.Error("Error unmarshaling client_register payload", "error", err)
 		return
 	}
 
@@ -44,14 +43,14 @@ func (h *NotificationHandler) BroadcastChapterHandler(s *dispatch.UDPServer, cli
 	var data types.NewChapterNotificationPayload
 
 	if err := json.Unmarshal(payload.Payload, &data); err != nil {
-		fmt.Printf("Error unmarshaling broadcast_chapter payload: %v\n", err)
+		logger.Error("Error unmarshaling broadcast_chapter payload", "error", err)
 		return
 	}
 
-	log.Printf("Broadcasting new chapter %s for manga %s", data.ChapterID, data.MangaID)
+	logger.Info("Broadcasting new chapter", "chapterID", data.ChapterID, "mangaID", data.MangaID)
 
 	message := map[string]interface{}{
-		"action": "chapter:on_new_chapter_notification",
+		"action":  "chapter:on_new_chapter_notification",
 		"payload": data,
 	}
 
@@ -62,16 +61,31 @@ func (h *NotificationHandler) BroadcastMessageHandler(s *dispatch.UDPServer, cli
 	var data types.NewMessageNotificationPayload
 
 	if err := json.Unmarshal(payload.Payload, &data); err != nil {
-		fmt.Printf("Error unmarshaling broadcast_message payload: %v\n", err)
+		logger.Error("Error unmarshaling broadcast_message payload", "error", err)
 		return
 	}
 
-	log.Printf("Broadcasting new message in room %s from %s", data.RoomID, data.SenderName)
+	logger.Info("Broadcasting new message notification", "roomID", data.RoomID, "sender", data.SenderName)
 
 	message := map[string]interface{}{
-		"action": "chat:on_new_message_notification",
+		"action":  "chat:on_new_message_notification",
 		"payload": data,
 	}
 
 	h.messagePool.Broadcast(s.Conn, data.RoomID, message)
+}
+
+func (h *NotificationHandler) NotificationAckHandler(s *dispatch.UDPServer, clientAddr *net.UDPAddr, payload types.UDPMessage) {
+	var data types.NotificationAckPayload
+
+	if err := json.Unmarshal(payload.Payload, &data); err != nil {
+		logger.Error("Error unmarshaling notification_ack payload", "error", err)
+		return
+	}
+
+	logger.Info("Received notification ACK", "notificationID", data.NotificationID, "userID", data.UserID)
+
+	// Try processing ACK in both pools (one will find it)
+	h.chapterPool.ProcessAck(data.NotificationID, data.UserID)
+	h.messagePool.ProcessAck(data.NotificationID, data.UserID)
 }

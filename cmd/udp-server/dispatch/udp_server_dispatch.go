@@ -2,8 +2,8 @@ package dispatch
 
 import (
 	"encoding/json"
-	"log"
 	"mangahub/cmd/udp-server/middleware"
+	"mangahub/pkg/logger"
 	"mangahub/pkg/types"
 	"net"
 )
@@ -28,11 +28,12 @@ func (s *UDPServer) Start(port string) {
 	// 2. Open UDP port
 	conn, err := net.ListenUDP("udp", addr)
 	if err != nil {
-		log.Fatalf("Start UDP Server error: %v", err)
+		logger.Error("Start UDP Server error", "error", err)
+		return
 	}
 	s.Conn = conn
 	defer s.Conn.Close()
-	log.Printf("UDP Server listening on port %s", port)
+	logger.Info("UDP Server listening", "port", port)
 
 	// 3. Handle incoming UDP messages
 	buffer := make([]byte, 65535) // Max UDP packet size
@@ -40,15 +41,13 @@ func (s *UDPServer) Start(port string) {
 		// Read UDP message
 		n, clientAddr, err := s.Conn.ReadFromUDP(buffer)
 		if err != nil {
-			log.Printf("Error reading UDP message: %v", err)
+			logger.Error("Error reading UDP message", "error", err)
 			continue
 		}
 
-		// Check if it's from API server (for now, assume any payload with 'broadcast' is trusted)
-		// Or the client register packet.
 		message := make([]byte, n)
 		copy(message, buffer[:n])
-		log.Printf("UDP received from %s: %s", clientAddr.String(), message)
+		logger.Debug("UDP received", "from", clientAddr.String(), "payload", string(message))
 		
 		// Process UDP message in a new goroutine
 		go func (s *UDPServer, message []byte, clientAddr *net.UDPAddr) {
@@ -56,13 +55,13 @@ func (s *UDPServer) Start(port string) {
 			var udpMsg types.UDPMessage
 			err := json.Unmarshal(message, &udpMsg)
 			if err != nil {
-				log.Printf("Invalid UDP message format: %v", err)
+				logger.Error("Invalid UDP message format", "error", err)
 				return
 			}
 
 			// check secret
 			if err := middleware.AuthMiddleware(udpMsg.Action, udpMsg.Token); err != nil {
-				log.Printf("Unauthorized UDP message: %v", err)
+				logger.Error("Unauthorized UDP message", "action", udpMsg.Action, "error", err)
 				return
 			}
 
@@ -79,10 +78,9 @@ func (s *UDPServer) RegisterHandler(action string, handler HandleFunc) {
 func (s *UDPServer) Dispatch(clientAddr *net.UDPAddr, payload types.UDPMessage) {
 	handler, exists := s.handlers[payload.Action]
 	if !exists {
-		log.Printf("No handler registered for action: %s", payload.Action)
+		logger.Warn("No handler registered for action", "action", payload.Action)
 		return
 	}
 
 	handler(s, clientAddr, payload)
 }
-

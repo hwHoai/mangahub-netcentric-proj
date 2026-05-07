@@ -18,6 +18,7 @@ import (
 	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
 	"gorm.io/gorm"
+	"mangahub/pkg/logger"
 )
 
 func main() {
@@ -29,6 +30,8 @@ func main() {
 	if port == ":" {
 		port = ":8084"
 	}
+	logger.Init(os.Getenv("ENV") == "prod", 0)
+	logger.Info("gRPC Server starting...", "pid", os.Getpid())
 	dbPath := os.Getenv("DB_PATH")
 	if dbPath == "" {
 		dbPath = "../../data/mangahub.db"

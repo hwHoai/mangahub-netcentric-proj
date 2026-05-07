@@ -45,6 +45,11 @@ func SetupRoutes(r *gin.Engine, privateKey *rsa.PrivateKey, publicKey *rsa.Publi
 		panic(err)
 	}
 
+	grpcMessageClient, _, err := clients.NewMessageGRPCClient()
+	if err != nil {
+		panic(err)
+	}
+
 	tcpChapterSyncClient := clients.NewTCPChapterSyncClient()
 
 	// 2. Initialize Services
@@ -68,6 +73,7 @@ func SetupRoutes(r *gin.Engine, privateKey *rsa.PrivateKey, publicKey *rsa.Publi
 		MangaService:      mangaService,
 		ChapterService:    chapterService,
 		UserService:       userService,
+		GRPCMessageClient: grpcMessageClient,
 		PrivateKey:        privateKey,
 		PublicKey:         publicKey,
 	}

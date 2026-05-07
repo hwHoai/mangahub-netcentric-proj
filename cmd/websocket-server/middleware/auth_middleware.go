@@ -34,7 +34,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		// Set user info in context
-		c.Set("userID", claims.Subject)
+		c.Set("user_id", claims.Subject)
 		c.Next()
 	}
 }

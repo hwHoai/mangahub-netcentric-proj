@@ -3,6 +3,7 @@ package grpc_services_impl
 import (
 	"context"
 	"mangahub/internal/grpc"
+	"mangahub/internal/repository"
 	repository_impl "mangahub/internal/repository/impl"
 	"mangahub/pkg/utils"
 	manga "mangahub/proto/manga"
@@ -12,17 +13,20 @@ import (
 
 type GRPCMangaService struct {
 	manga.UnimplementedGRPCMangaServiceServer
-	db *gorm.DB
+	db        *gorm.DB
+	mangaRepo repository.MangaRepository
 }
 var _ grpc.GRPCMangaService = (*GRPCMangaService)(nil)
 
 func NewGRPCMangaService(db *gorm.DB) *GRPCMangaService {
-	return &GRPCMangaService{db: db}
+	return &GRPCMangaService{
+		db:        db,
+		mangaRepo: repository_impl.NewMangaRepository(db),
+	}
 }
 
 func (g *GRPCMangaService) GetMangas(ctx context.Context, req *manga.MangaListRequest) (*manga.MangaListResponse, error) {
-	mangaRepository := repository_impl.NewMangaRepository(g.db)
-	mangas, err := mangaRepository.GetMangas(int(req.Limit), int(req.Offset))
+	mangas, err := g.mangaRepo.GetMangas(int(req.Limit), int(req.Offset))
 	if err != nil {
 		return nil, err
 	}
@@ -45,8 +49,7 @@ func (g *GRPCMangaService) GetMangas(ctx context.Context, req *manga.MangaListRe
 }
 
 func (g *GRPCMangaService) GetMangaDetail(ctx context.Context, req *manga.MangaDetailRequest) (*manga.MangaDetailResponse, error) {
-	mangaRepo := repository_impl.NewMangaRepository(g.db)
-	mangaDetail, err := mangaRepo.GetMangaDetail(req.Id)
+	mangaDetail, err := g.mangaRepo.GetMangaDetail(req.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -66,8 +69,7 @@ func (g *GRPCMangaService) GetMangaDetail(ctx context.Context, req *manga.MangaD
 }
 
 func (g *GRPCMangaService) GetMangaChapters(ctx context.Context, req *manga.MangaChaptersRequest) (*manga.MangaChaptersResponse, error) {
-	mangaRepo := repository_impl.NewMangaRepository(g.db)
-	mangaChapters, err := mangaRepo.GetMangaChapters(req.Id)
+	mangaChapters, err := g.mangaRepo.GetMangaChapters(req.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -88,8 +90,7 @@ func (g *GRPCMangaService) GetMangaChapters(ctx context.Context, req *manga.Mang
 	}, nil
 }
 func (g *GRPCMangaService) CheckMangaExists(ctx context.Context, req *manga.CheckMangaExistsRequest) (*manga.CheckMangaExistsResponse, error) {
-	mangaRepo := repository_impl.NewMangaRepository(g.db)
-	exists, err := mangaRepo.CheckMangaExists(req.Id)
+	exists, err := g.mangaRepo.CheckMangaExists(req.Id)
 	if err != nil {
 		return &manga.CheckMangaExistsResponse{Exists: false}, nil
 	}
