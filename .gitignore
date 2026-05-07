@@ -23,7 +23,7 @@ request_example.http
 
 # Large benchmark evidence (Keep static images, ignore heavy GIFs for Git)
 benchmark_evd/*.gif
-benchmark_evd/*.mp4
+# benchmark_evd/*.mp4
 
 data/*.db-shm
 data/*.db-wal
