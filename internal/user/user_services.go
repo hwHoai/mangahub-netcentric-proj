@@ -2,6 +2,6 @@ package user
 
 import "mangahub/pkg/dto"
 
-type MeService interface {
-	GetMe(userID string) (*dto.UserProfileResponse, dto.ExceptionDTO)
+type UserService interface {
+	GetUserDetails(userID string) (*dto.UserProfileResponse, dto.ExceptionDTO)
 }

@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package message;
+
+option go_package = "mangahub/proto/message";
+
+service GRPCMessageService {
+    rpc SaveMessage(SaveMessageRequest) returns (SaveMessageResponse);
+    rpc GetChatHistory(GetChatHistoryRequest) returns (GetChatHistoryResponse);
+}
+
+message MessageResponse {
+    string id = 1;
+    string sender_id = 2;
+    string room_id = 3;
+    string content = 4;
+    string created_at = 5;
+}
+
+message SaveMessageRequest {
+    string sender_id = 1;
+    string room_id = 2;
+    string content = 3;
+}
+
+message SaveMessageResponse {
+    MessageResponse message = 1;
+}
+
+message GetChatHistoryRequest {
+    string room_id = 1;
+    int32 limit = 2;
+    int32 offset = 3;
+}
+
+message GetChatHistoryResponse {
+    repeated MessageResponse messages = 1;
+}

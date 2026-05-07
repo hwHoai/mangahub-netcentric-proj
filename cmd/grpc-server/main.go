@@ -4,10 +4,11 @@ import (
 	"log"
 
 	grpc_services_impl "mangahub/internal/grpc/impl"
-	dbImpl "mangahub/pkg/database/impl"
+	dbImpl "mangahub/internal/database/impl"
 	"mangahub/pkg/seeder"
 	"mangahub/proto/chapter"
 	"mangahub/proto/manga"
+	"mangahub/proto/message"
 	"mangahub/proto/session"
 	"mangahub/proto/user"
 	"mangahub/proto/user_manga"
@@ -17,6 +18,7 @@ import (
 	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
 	"gorm.io/gorm"
+	"mangahub/pkg/logger"
 )
 
 func main() {
@@ -28,6 +30,8 @@ func main() {
 	if port == ":" {
 		port = ":8084"
 	}
+	logger.Init(os.Getenv("ENV") == "prod", 0)
+	logger.Info("gRPC Server starting...", "pid", os.Getpid())
 	dbPath := os.Getenv("DB_PATH")
 	if dbPath == "" {
 		dbPath = "../../data/mangahub.db"
@@ -103,4 +107,7 @@ func registerServices(grpcServer *grpc.Server, db *gorm.DB) {
 
 	chapterService := grpc_services_impl.NewGRPCChapterService(db)
 	chapter.RegisterGRPCChapterServiceServer(grpcServer, chapterService)
+
+	messageService := grpc_services_impl.NewGRPCMessageService(db)
+	message.RegisterGRPCMessageServiceServer(grpcServer, messageService)
 }

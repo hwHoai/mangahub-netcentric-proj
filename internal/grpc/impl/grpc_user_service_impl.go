@@ -5,9 +5,10 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"mangahub/internal/grpc"
+	"mangahub/internal/repository"
+	repository_impl "mangahub/internal/repository/impl"
 	"mangahub/pkg/models"
 	"mangahub/pkg/utils"
-	repository_impl "mangahub/pkg/repository/impl"
 	"mangahub/proto/user"
 
 	"gorm.io/gorm"
@@ -15,19 +16,22 @@ import (
 
 type GRPCUserService struct {
 	user.UnimplementedGRPCUserServiceServer
-	db *gorm.DB
+	db       *gorm.DB
+	userRepo repository.UserRepository
 }
 
 var _ grpc.GRPCUserService = (*GRPCUserService)(nil)
 
 func NewGRPCUserService(db *gorm.DB) *GRPCUserService {
-	return &GRPCUserService{db: db}
+	return &GRPCUserService{
+		db:       db,
+		userRepo: repository_impl.NewUserRepository(db),
+	}
 }
 
 func (s *GRPCUserService) GetUserModelByUsername(ctx context.Context, req *user.GetUserModelByUsernameRequest) (*user.GetUserModelByUsernameResponse, error) {
 	// 1. Fetch user data from database using repository
-	userRepo := repository_impl.NewUserRepository(s.db)
-	userModel, err := userRepo.GetUserByUsername(req.Username)
+	userModel, err := s.userRepo.GetUserByUsername(req.Username)
 	if err != nil {
 		return nil, err
 	}
@@ -55,8 +59,7 @@ func (s *GRPCUserService) CreateNewUser(ctx context.Context, req *user.CreateNew
 	userModel := models.NewUserModel(req.Username, hashedPassword)
 
 	// Save to database
-	userRepo := repository_impl.NewUserRepository(s.db)
-	savedUser, err := userRepo.CreateUser(userModel)
+	savedUser, err := s.userRepo.CreateUser(userModel)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
@@ -72,8 +75,7 @@ func (s *GRPCUserService) CreateNewUser(ctx context.Context, req *user.CreateNew
 }
 
 func (s *GRPCUserService) GetUserByID(ctx context.Context, req *user.GetUserByIDRequest) (*user.GetUserByIDResponse, error) {
-	userRepo := repository_impl.NewUserRepository(s.db)
-	userModel, err := userRepo.GetUserByID(req.UserId)
+	userModel, err := s.userRepo.GetUserByID(req.UserId)
 	if err != nil {
 		return nil, err
 	}

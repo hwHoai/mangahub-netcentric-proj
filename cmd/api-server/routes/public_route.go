@@ -3,32 +3,36 @@ package routes
 import (
 	"crypto/rsa"
 	"mangahub/cmd/api-server/controllers"
-	"mangahub/proto/chapter"
-	"mangahub/proto/manga"
+	"mangahub/internal/manga"
+	user_internal "mangahub/internal/user"
 	"mangahub/proto/session"
 	"mangahub/proto/user"
+	"mangahub/proto/message"
 
 	"github.com/gin-gonic/gin"
 )
 
 type PublicRouteOpts struct {
-	gRPCUserClient    user.GRPCUserServiceClient
-	gRPCSessionClient session.GRPCSessionServiceClient
-	GRPCMangaClient   manga.GRPCMangaServiceClient
-	GRPCChapterClient chapter.GRPCChapterServiceClient
+	GRPCUserClient    user.GRPCUserServiceClient
+	GRPCSessionClient session.GRPCSessionServiceClient
+	MangaService      manga.MangaService
+	ChapterService    manga.ChapterService
+	UserService       user_internal.UserService
+	GRPCMessageClient message.GRPCMessageServiceClient
 	PrivateKey        *rsa.PrivateKey
 	PublicKey         *rsa.PublicKey
 }
 
 func SetupPublicRoutes(rg *gin.RouterGroup, opts *PublicRouteOpts) {
 	//1. Handler definition (if needed)
-	grpcUserClient := opts.gRPCUserClient
-	grpcSessionClient := opts.gRPCSessionClient
-	grpcMangaClient := opts.GRPCMangaClient
-	grpcChapterClient := opts.GRPCChapterClient
+	grpcUserClient := opts.GRPCUserClient
+	grpcSessionClient := opts.GRPCSessionClient
+	mangaService := opts.MangaService
+	chapterService := opts.ChapterService
 
-	authController := controllers.NewAuthController(grpcUserClient, grpcSessionClient, opts.PrivateKey, opts.PublicKey)
-	mangaController := controllers.NewMangaController(grpcMangaClient, grpcChapterClient)
+	authController := controllers.NewAuthController(grpcUserClient, grpcSessionClient, opts.UserService, opts.PrivateKey, opts.PublicKey)
+	mangaController := controllers.NewMangaController(mangaService, chapterService)
+	chatController := controllers.NewChatController(opts.GRPCMessageClient)
 	
 	//2. Middleware for public routes can be added here (if needed)
 
@@ -42,7 +46,11 @@ func SetupPublicRoutes(rg *gin.RouterGroup, opts *PublicRouteOpts) {
 	rg.GET("/mangas", mangaController.ListMangas)
 	rg.GET("/mangas/:id", mangaController.GetMangaDetail)
 	rg.GET("/mangas/:id/chapters", mangaController.GetMangaChapters)
+	rg.GET("/mangas/:id/messages", chatController.GetChatHistory)
 
 	// CHAPTER ROUTES
 	rg.GET("/chapters/:chapter_id", mangaController.ReadChapter)
+
+	// EDUCATIONAL SCRAPING ROUTE
+	rg.GET("/quotes", mangaController.ScrapeQuotes)
 }

@@ -1,24 +1,30 @@
 @baseUrl = http://localhost:8081
 @mangaId = MANGA_ID_HERE
 @chapterId = CHAPTER_ID_HERE
-@token = LOGIN_ACCESS_TOKEN_HERE
-@username = USERNAME_HERE
-@password = PASSWORD_HERE
+@token = ACCESS_TOKEN_HERE
+@username = testuser
+@password = password123
 
 ### Health check
 GET {{baseUrl}}/api/v1/health
 
 ### Signup by username
 POST {{baseUrl}}/api/v1/signup
-Content-Type: application/x-www-form-urlencoded
+Content-Type: application/json
 
-username={{username}}&password={{password}}
+{
+    "username": "{{username}}",
+    "password": "{{password}}"
+}
 
 ### Login by username
 POST {{baseUrl}}/api/v1/login
-Content-Type: application/x-www-form-urlencoded
+Content-Type: application/json
 
-username={{username}}&password={{password}}
+{
+    "username": "{{username}}",
+    "password": "{{password}}"
+}
 
 ### Refresh token
 POST {{baseUrl}}/api/v1/auth/refresh
@@ -37,6 +43,9 @@ GET {{baseUrl}}/api/v1/mangas/{{mangaId}}
 ### Get manga chapters
 GET {{baseUrl}}/api/v1/mangas/{{mangaId}}/chapters
 
+### Read chapter (Public)
+GET {{baseUrl}}/api/v1/chapters/{{chapterId}}
+
 ###########################################################
 # User Manga APIs (Require Authentication)
 ###########################################################
@@ -53,16 +62,23 @@ Authorization: Bearer {{token}}
 GET {{baseUrl}}/api/v1/user/mangas/following?limit=10&offset=0
 Authorization: Bearer {{token}}
 
-### Store reading progress
-POST {{baseUrl}}/api/v1/user/chapters/{{chapterId}}/read
+### Sync/Create new chapter from MangaDex (Trigger UDP Notification)
+# This will notify all users who follow this manga via UDP
+POST {{baseUrl}}/api/v1/mangas/{{mangaId}}/chapters
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "mangadex_chapter_id": "MANGADEX_CHAPTER_ID_HERE"
+}
+
+### Read chapter (Authenticated - Triggers TCP Sync)
+GET {{baseUrl}}/api/v1/user/chapters/{{chapterId}}
 Authorization: Bearer {{token}}
 
 ### Get current user profile
 GET {{baseUrl}}/api/v1/auth/me
 Authorization: Bearer {{token}}
-
-### Read chapter
-GET {{baseUrl}}/api/v1/chapters/{{chapterId}}
 
 ### Get reading history
 GET {{baseUrl}}/api/v1/user/history?limit=10&offset=0

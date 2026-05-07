@@ -24,6 +24,7 @@ const (
 	GRPCUserMangaService_GetFollowingMangas_FullMethodName   = "/user_manga.GRPCUserMangaService/GetFollowingMangas"
 	GRPCUserMangaService_StoreReadingProgress_FullMethodName = "/user_manga.GRPCUserMangaService/StoreReadingProgress"
 	GRPCUserMangaService_GetReadingHistory_FullMethodName    = "/user_manga.GRPCUserMangaService/GetReadingHistory"
+	GRPCUserMangaService_GetFollowers_FullMethodName         = "/user_manga.GRPCUserMangaService/GetFollowers"
 )
 
 // GRPCUserMangaServiceClient is the client API for GRPCUserMangaService service.
@@ -35,6 +36,7 @@ type GRPCUserMangaServiceClient interface {
 	GetFollowingMangas(ctx context.Context, in *GetFollowingMangasRequest, opts ...grpc.CallOption) (*GetFollowingMangasResponse, error)
 	StoreReadingProgress(ctx context.Context, in *StoreReadingProgressRequest, opts ...grpc.CallOption) (*StoreReadingProgressResponse, error)
 	GetReadingHistory(ctx context.Context, in *GetReadingHistoryRequest, opts ...grpc.CallOption) (*GetReadingHistoryResponse, error)
+	GetFollowers(ctx context.Context, in *GetFollowersRequest, opts ...grpc.CallOption) (*GetFollowersResponse, error)
 }
 
 type gRPCUserMangaServiceClient struct {
@@ -95,6 +97,16 @@ func (c *gRPCUserMangaServiceClient) GetReadingHistory(ctx context.Context, in *
 	return out, nil
 }
 
+func (c *gRPCUserMangaServiceClient) GetFollowers(ctx context.Context, in *GetFollowersRequest, opts ...grpc.CallOption) (*GetFollowersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetFollowersResponse)
+	err := c.cc.Invoke(ctx, GRPCUserMangaService_GetFollowers_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GRPCUserMangaServiceServer is the server API for GRPCUserMangaService service.
 // All implementations must embed UnimplementedGRPCUserMangaServiceServer
 // for forward compatibility.
@@ -104,6 +116,7 @@ type GRPCUserMangaServiceServer interface {
 	GetFollowingMangas(context.Context, *GetFollowingMangasRequest) (*GetFollowingMangasResponse, error)
 	StoreReadingProgress(context.Context, *StoreReadingProgressRequest) (*StoreReadingProgressResponse, error)
 	GetReadingHistory(context.Context, *GetReadingHistoryRequest) (*GetReadingHistoryResponse, error)
+	GetFollowers(context.Context, *GetFollowersRequest) (*GetFollowersResponse, error)
 	mustEmbedUnimplementedGRPCUserMangaServiceServer()
 }
 
@@ -128,6 +141,9 @@ func (UnimplementedGRPCUserMangaServiceServer) StoreReadingProgress(context.Cont
 }
 func (UnimplementedGRPCUserMangaServiceServer) GetReadingHistory(context.Context, *GetReadingHistoryRequest) (*GetReadingHistoryResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetReadingHistory not implemented")
+}
+func (UnimplementedGRPCUserMangaServiceServer) GetFollowers(context.Context, *GetFollowersRequest) (*GetFollowersResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetFollowers not implemented")
 }
 func (UnimplementedGRPCUserMangaServiceServer) mustEmbedUnimplementedGRPCUserMangaServiceServer() {}
 func (UnimplementedGRPCUserMangaServiceServer) testEmbeddedByValue()                              {}
@@ -240,6 +256,24 @@ func _GRPCUserMangaService_GetReadingHistory_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GRPCUserMangaService_GetFollowers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFollowersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GRPCUserMangaServiceServer).GetFollowers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GRPCUserMangaService_GetFollowers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GRPCUserMangaServiceServer).GetFollowers(ctx, req.(*GetFollowersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // GRPCUserMangaService_ServiceDesc is the grpc.ServiceDesc for GRPCUserMangaService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -266,6 +300,10 @@ var GRPCUserMangaService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetReadingHistory",
 			Handler:    _GRPCUserMangaService_GetReadingHistory_Handler,
+		},
+		{
+			MethodName: "GetFollowers",
+			Handler:    _GRPCUserMangaService_GetFollowers_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

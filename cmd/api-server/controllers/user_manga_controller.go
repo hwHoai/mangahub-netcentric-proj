@@ -1,10 +1,8 @@
 package controllers
 
 import (
-	manga_services_impl "mangahub/internal/manga/impl"
-	user_services_impl "mangahub/internal/user/impl"
-	"mangahub/proto/chapter"
-	"mangahub/proto/user_manga"
+	"mangahub/internal/manga"
+	"mangahub/internal/user"
 	"mangahub/internal/tcp"
 	"net/http"
 	"strconv"
@@ -14,19 +12,19 @@ import (
 )
 
 type UserMangaController struct {
-	grpcUserMangaClient  user_manga.GRPCUserMangaServiceClient
-	grpcChapterClient    chapter.GRPCChapterServiceClient
+	userMangaService     user.UserMangaService
+	chapterService       manga.ChapterService
 	tcpChapterSyncClient tcp_services.TCPChapterSyncServices
 }
 
 func NewUserMangaController(
-	grpcUserMangaClient user_manga.GRPCUserMangaServiceClient,
-	grpcChapterClient chapter.GRPCChapterServiceClient,
+	userMangaService user.UserMangaService,
+	chapterService manga.ChapterService,
 	tcpChapterSyncClient tcp_services.TCPChapterSyncServices,
 ) *UserMangaController {
 	return &UserMangaController{
-		grpcUserMangaClient:  grpcUserMangaClient,
-		grpcChapterClient:    grpcChapterClient,
+		userMangaService:     userMangaService,
+		chapterService:       chapterService,
 		tcpChapterSyncClient: tcpChapterSyncClient,
 	}
 }
@@ -36,9 +34,7 @@ func (uc *UserMangaController) FollowManga(c *gin.Context) {
 	userID := c.GetString("user_id")
 	mangaID := c.Param("id")
 
-	service := user_services_impl.NewUserMangaService(uc.grpcUserMangaClient)
-
-	follower, err := service.FollowManga(userID, mangaID)
+	follower, err := uc.userMangaService.FollowManga(userID, mangaID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -55,9 +51,7 @@ func (uc *UserMangaController) UnfollowManga(c *gin.Context) {
 	userID := c.GetString("user_id")
 	mangaID := c.Param("id")
 
-	service := user_services_impl.NewUserMangaService(uc.grpcUserMangaClient)
-
-	err := service.UnfollowManga(userID, mangaID)
+	err := uc.userMangaService.UnfollowManga(userID, mangaID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -74,9 +68,7 @@ func (uc *UserMangaController) GetFollowingMangas(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
 	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
 
-	service := user_services_impl.NewUserMangaService(uc.grpcUserMangaClient)
-
-	mangas, err := service.GetFollowingMangas(userID, limit, offset)
+	mangas, err := uc.userMangaService.GetFollowingMangas(userID, limit, offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -89,13 +81,11 @@ func (uc *UserMangaController) GetFollowingMangas(c *gin.Context) {
 }
 
 // GET /api/v1/user/chapters/:chapter_id
-func (uc *UserMangaController) ReadChapter(c *gin.Context) {
+func (uc *UserMangaController) ReadChapterWithDevicesSync(c *gin.Context) {
 	userID := c.GetString("user_id")
 	chapterID := c.Param("chapter_id")
 
-	service := manga_services_impl.NewChapterService(uc.grpcChapterClient)
-
-	chapter, err := service.ReadChapter(chapterID)
+	chapter, err := uc.chapterService.ReadChapter(chapterID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -109,7 +99,7 @@ func (uc *UserMangaController) ReadChapter(c *gin.Context) {
 	}()
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Chapter retrieved",
+		"message": "Chapter retrieved and sync triggered",
 		"data":    chapter,
 	})
 }
@@ -123,9 +113,7 @@ func (uc *UserMangaController) GetReadingHistory(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
 	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
 
-	service := user_services_impl.NewUserMangaService(uc.grpcUserMangaClient)
-
-	history, err := service.GetReadingHistory(userID, limit, offset)
+	history, err := uc.userMangaService.GetReadingHistory(userID, limit, offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

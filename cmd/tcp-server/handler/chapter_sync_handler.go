@@ -3,7 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
-	pool_impl "mangahub/cmd/tcp-server/utils/pools/impl"
+	pool_impl "mangahub/cmd/tcp-server/utils/pool/impl"
 	"net"
 )
 

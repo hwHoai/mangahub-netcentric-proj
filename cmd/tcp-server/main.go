@@ -3,15 +3,18 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"log"
 	"mangahub/cmd/tcp-server/dispatch"
 	"mangahub/cmd/tcp-server/handler"
-	"mangahub/cmd/tcp-server/utils/pools"
-	pool_impl "mangahub/cmd/tcp-server/utils/pools/impl"
+	"mangahub/cmd/tcp-server/utils/pool"
+	pool_impl "mangahub/cmd/tcp-server/utils/pool/impl"
 	"mangahub/pkg/clients"
+	"mangahub/pkg/logger"
 	"mangahub/pkg/types"
 	"net"
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -25,6 +28,8 @@ func main() {
 	if port == ":" {
 		port = ":8082"
 	}
+	logger.Init(os.Getenv("ENV") == "prod", 0)
+	logger.Info("TCP Server starting...", "pid", os.Getpid())
 
 	//2. Setup gRPC client
 	grpcUserMangaClient, grpcConn, err := clients.NewUserMangaGRPCClient()
@@ -51,6 +56,21 @@ func main() {
 	// Key sync handler
 	dispatcher.RegisterHandler("pub_key:impl_sync_public_key", keySyncHandler.SyncPublicKeyHandler)
 
+	// Benchmark handler (Ping-Pong)
+	dispatcher.RegisterHandler("benchmark:test_ping", func(conn net.Conn, payload any) {
+		response := types.TCPMessage{
+			Action:  "benchmark:res_pong",
+			Payload: json.RawMessage(`{"status": "ok", "msg": "PONG"}`),
+		}
+		data, _ := json.Marshal(response)
+		fmt.Fprintln(conn, string(data))
+	})
+
+	dispatcher.RegisterHandler("benchmark:res_pong", func(conn net.Conn, payload any) {
+		// Just a placeholder to show it's received on server logs
+		// No action needed
+	})
+
 	//7. Open TCP port
 	listener, err := net.Listen("tcp", port)
 	if err != nil {
@@ -74,26 +94,34 @@ func main() {
 	}
 }
 
+const tcpIdleTimeout = 5 * time.Minute
+
 func handleTCPConnection(conn net.Conn, dispatcher *dispatch.Dispatcher, pools []pools.ConnectionPool) {
 	defer func() {
 		for _, pool := range pools {
 			go pool.Unregister(conn)
 		}
 		conn.Close()
+		log.Printf("Connection closed: %s", conn.RemoteAddr())
 	}()
-	// Init decoder to read JSON messages from the connection
+
+	conn.SetReadDeadline(time.Now().Add(tcpIdleTimeout))
 	scanner := bufio.NewScanner(conn)
 
-	// Infinite loop to read messages from the client
 	for scanner.Scan() {
+		conn.SetReadDeadline(time.Now().Add(tcpIdleTimeout))
+
 		var msg types.TCPMessage
 		if err := json.Unmarshal(scanner.Bytes(), &msg); err != nil {
-			log.Printf("Error decoding message: %v", err)
-			return
+			log.Printf("Error decoding message from %s: %v (raw: %s)", conn.RemoteAddr(), err, scanner.Text())
+			continue
 		}
-		log.Printf("Received action: %s with payload: %s", msg.Action, string(msg.Payload))
+		log.Printf("Received action: %s", msg.Action) 
 
-		// Dispatch message to the appropriate handler based on the action
 		dispatcher.Dispatch(conn, msg)
+	}
+
+	if err := scanner.Err(); err != nil {
+		log.Printf("Connection error from %s: %v", conn.RemoteAddr(), err)
 	}
 }

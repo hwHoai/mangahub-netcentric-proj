@@ -50,8 +50,17 @@ message MangaChaptersResponse {
 	repeated Chapter chapters = 1;
 }
 
+message CheckMangaExistsRequest {
+	string id = 1;
+}
+
+message CheckMangaExistsResponse {
+	bool exists = 1;
+}
+
 service GRPCMangaService {
 	rpc GetMangas(MangaListRequest) returns (MangaListResponse);
 	rpc GetMangaDetail(MangaDetailRequest) returns (MangaDetailResponse);
 	rpc GetMangaChapters(MangaChaptersRequest) returns (MangaChaptersResponse);
+	rpc CheckMangaExists(CheckMangaExistsRequest) returns (CheckMangaExistsResponse);
 }

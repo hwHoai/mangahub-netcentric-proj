@@ -1,6 +1,25 @@
-go.mod
-go.sum
+# Binaries
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
 
+# Environments
 .env
 
+# Test & Coverage
+*.out
+coverage.out
+
+# IDEs
+.vscode/
+.idea/
+
+# Local Request files
 request.http
+request_example.http
+
+# Large benchmark evidence (Keep static images, ignore heavy GIFs for Git)
+benchmark_evd/*.gif

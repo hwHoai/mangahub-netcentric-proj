@@ -12,10 +12,20 @@ import (
 
 const MangaDexBaseURL = "https://api.mangadex.org"
 
+type MangaDexClientInterface interface {
+	GetMangaList(limit int, offset int) (*MangaDexListResponse, error)
+	GetTags() (map[string]TagAttributes, error)
+	GetMangaChapters(mangaID string, limit int) (*MangaDexChapterListResponse, error)
+	GetChapterDetails(chapterID string) (*MangaDexChapter, error)
+	GetChapterPages(chapterID string) ([]string, error)
+}
+
 type MangaDexClient struct {
 	baseURL    string
 	httpClient *http.Client
 }
+
+var _ MangaDexClientInterface = (*MangaDexClient)(nil)
 
 // MangaDex API Response Structures
 type MangaDexListResponse struct {
@@ -194,13 +204,18 @@ func (c *MangaDexClient) GetTags() (map[string]TagAttributes, error) {
 }
 
 // Chapter and Pages API Response Structures
+type MangaDexChapterDetailResponse struct {
+	Data MangaDexChapter `json:"data"`
+}
+
 type MangaDexChapterListResponse struct {
 	Data []MangaDexChapter `json:"data"`
 }
 
 type MangaDexChapter struct {
-	ID         string                   `json:"id"`
-	Attributes MangaDexChapterAttribute `json:"attributes"`
+	ID            string                   `json:"id"`
+	Attributes    MangaDexChapterAttribute `json:"attributes"`
+	Relationships []MangaDexRelationship   `json:"relationships"`
 }
 
 type MangaDexChapterAttribute struct {
@@ -248,6 +263,40 @@ func (c *MangaDexClient) GetMangaChapters(mangaID string, limit int) (*MangaDexC
 	}
 
 	return &result, nil
+}
+
+// GetChapterDetails fetches a specific chapter's metadata
+func (c *MangaDexClient) GetChapterDetails(chapterID string) (*MangaDexChapter, error) {
+	url := fmt.Sprintf("%s/chapter/%s", c.baseURL, chapterID)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("User-Agent", "MangaHub-StudentProject/1.0 (github.com/hwHoai)")
+	
+	c.addHeaders(req)
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to get chapter details: status code %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var result MangaDexChapterDetailResponse
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, err
+	}
+
+	return &result.Data, nil
 }
 
 // GetChapterPages fetches page image URLs for a given chapter ID
