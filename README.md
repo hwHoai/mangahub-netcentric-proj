@@ -75,28 +75,14 @@ MangaHub operates as a cluster of specialized gateway services communicating int
 *   **Memory Footprint**: The entire TCP server consumed only **~72.8 MB** of RAM during peak load.
 *   **Efficiency**: Approximately **~36 KB** per active connection.
 
-<details>
-<summary><b>📊 Click to view TCP Evidence</b></summary>
-
-#### Real-time Processing (Ping-Pong-Ack Loop) & RAM Usage (2,000 Connections)
-
-<video src="./benchmark_evd/tcp_ping_pong.mp4" controls="controls" muted="muted" width="100%"></video>
-
-</details>
+[▶️ **CLICK HERE TO WATCH THE BENCHMARK VIDEO**](./benchmark_evd/tcp_ping_pong.mp4)
 
 ### 3.4 Reliability & Efficiency (UDP)
 *   **High-Speed Processing**: Processed **2,000 packets** in just **3.2 seconds**.
 *   **Reliability**: Achieved **100.00% delivery success** in local network benchmarks.
 *   **Minimal Footprint**: The UDP server operates with an extremely low memory overhead of only **~5.9 MB**.
 
-<details>
-<summary><b>📊 Click to view UDP Evidence</b></summary>
-
-#### High-Speed Processing (2,000 packets in 3.2s)
-
-<video src="./benchmark_evd/udp_processing.mp4" controls="controls" muted="muted" width="100%"></video>
-
-</details>
+[▶️ **CLICK HERE TO WATCH THE BENCHMARK VIDEO**](./benchmark_evd/udp_processing.mp4)
 
 ---
 
