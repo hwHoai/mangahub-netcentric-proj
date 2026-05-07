@@ -33,6 +33,9 @@ MangaHub operates as a cluster of specialized gateway services communicating int
 
 ![System Architecture](docs/architecture.png)
 
+### Database Schema Diagram
+![Database Diagram](docs/db_diagram.png)
+
 ### Component Breakdown
 
 *   **`api-server` (Public API Gateway)**: The primary entry point for all client applications, managing user identity and providing high-speed access to the content library and metadata.
@@ -76,6 +79,8 @@ MangaHub operates as a cluster of specialized gateway services communicating int
 <summary><b>📊 Click to view TCP Evidence</b></summary>
 
 #### Real-time Processing (Ping-Pong-Ack Loop) & RAM Usage (2,000 Connections)
+![TCP Ping Pong MP4](https://github.com/user-attachments/assets/ef97bf97-a647-434a-b0f4-bbc826a30b9d)
+
 ![TCP Ping Pong GIF](benchmark_evd/tcp_ping_pong.gif)
 </details>
 
@@ -88,7 +93,9 @@ MangaHub operates as a cluster of specialized gateway services communicating int
 <summary><b>📊 Click to view UDP Evidence</b></summary>
 
 #### High-Speed Processing (2,000 packets in 3.2s)
-![UDP Processing Gif](benchmark_evd/udp_processing.gif)
+![UDP Processing MP4](https://github.com/user-attachments/assets/cb768e3e-a043-45cc-885d-50260092575c)
+
+![UDP Processing GIF](benchmark_evd/udp_processing.gif)
 </details>
 
 ---
@@ -148,14 +155,14 @@ manga_hub/
 │   │   ├── handler/
 │   │   ├── middleware/
 │   │   └── utils/
-│   │       └── pools/
+│   │       └── pool/
 │   │           └── impl/
 │   ├── udp-server/
 │   │   ├── dispatch/
 │   │   ├── handler/
 │   │   ├── middleware/
 │   │   └── utils/
-│   │       └── pools/
+│   │       └── pool/
 │   │           └── impl/
 │   └── websocket-server/
 │       ├── handler/
