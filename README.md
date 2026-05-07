@@ -64,11 +64,7 @@ MangaHub operates as a cluster of specialized gateway services communicating int
 | **p99 Latency** | `131.4 ms` |
 | **Requests Per Second (RPS)** | `3,290+ req/sec` |
 
-<details>
-<summary><b>📊 Click to view HTTP Benchmark Evidence</b></summary>
-
 ![HTTP Benchmark Evidence](benchmark_evd/http_rest_results.png)
-</details>
 
 ### 3.3 Real-time Connections (TCP)
 *   **Concurrent Handling**: Successfully maintained **2,000+** active "Ping-Pong-Ack" sessions through the complete stack (Middleware -> Dispatcher -> Handler).
@@ -80,9 +76,8 @@ MangaHub operates as a cluster of specialized gateway services communicating int
 
 #### Real-time Processing (Ping-Pong-Ack Loop) & RAM Usage (2,000 Connections)
 
-<video src="./benchmark_evd/tcp_ping_pong.mp4" controls="controls" style="max-width: 720px;"></video>
+![TCP Benchmark Evidence](benchmark_evd/tcp_ping_pong_compressed.gif)
 
-![TCP Ping Pong GIF](benchmark_evd/tcp_ping_pong.gif)
 </details>
 
 ### 3.4 Reliability & Efficiency (UDP)
@@ -95,9 +90,8 @@ MangaHub operates as a cluster of specialized gateway services communicating int
 
 #### High-Speed Processing (2,000 packets in 3.2s)
 
-<video src="./benchmark_evd/udp_processing.mp4" controls="controls" style="max-width: 720px;"></video>
+![UDP Benchmark Evidence](benchmark_evd/udp_processing_compressed.gif)
 
-![UDP Processing GIF](benchmark_evd/udp_processing.gif)
 </details>
 
 ---
