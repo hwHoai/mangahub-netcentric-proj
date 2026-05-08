@@ -48,8 +48,12 @@ func TestUDPNotificationServicesImpl_SendNotifications(t *testing.T) {
 	}()
 
 	// 2. Initialize the client
-	client, err := NewNotificationServicesImpl()
+	remoteAddr, err := net.ResolveUDPAddr("udp", "127.0.0.1:"+port)
 	assert.NoError(t, err)
+	clientConn, err := net.DialUDP("udp", nil, remoteAddr)
+	assert.NoError(t, err)
+
+	client := NewNotificationServices(remoteAddr, clientConn, "test-secret")
 	defer client.Close()
 
 	// 3. Test Chapter Notification

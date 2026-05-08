@@ -4,6 +4,7 @@ import (
 	"crypto/rsa"
 	"mangahub/cmd/api-server/controllers"
 	"mangahub/internal/manga"
+	"mangahub/internal/scrape"
 	user_internal "mangahub/internal/user"
 	"mangahub/proto/session"
 	"mangahub/proto/user"
@@ -18,6 +19,7 @@ type PublicRouteOpts struct {
 	MangaService      manga.MangaService
 	ChapterService    manga.ChapterService
 	UserService       user_internal.UserService
+	ScrapeService     scrape.ScrapeService
 	GRPCMessageClient message.GRPCMessageServiceClient
 	PrivateKey        *rsa.PrivateKey
 	PublicKey         *rsa.PublicKey
@@ -32,6 +34,7 @@ func SetupPublicRoutes(rg *gin.RouterGroup, opts *PublicRouteOpts) {
 
 	authController := controllers.NewAuthController(grpcUserClient, grpcSessionClient, opts.UserService, opts.PrivateKey, opts.PublicKey)
 	mangaController := controllers.NewMangaController(mangaService, chapterService)
+	scrapeController := controllers.NewScrapeController(opts.ScrapeService)
 	chatController := controllers.NewChatController(opts.GRPCMessageClient)
 	
 	//2. Middleware for public routes can be added here (if needed)
@@ -52,5 +55,5 @@ func SetupPublicRoutes(rg *gin.RouterGroup, opts *PublicRouteOpts) {
 	rg.GET("/chapters/:chapter_id", mangaController.ReadChapter)
 
 	// EDUCATIONAL SCRAPING ROUTE
-	rg.GET("/quotes", mangaController.ScrapeQuotes)
+	rg.GET("/quotes", scrapeController.ScrapeQuotes)
 }

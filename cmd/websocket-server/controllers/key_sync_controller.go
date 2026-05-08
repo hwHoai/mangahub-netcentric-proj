@@ -1,8 +1,9 @@
-package handler
+package controllers
 
 import (
 	"fmt"
 	"mangahub/cmd/websocket-server/utils"
+	"mangahub/pkg/logger"
 	jwt_impl "mangahub/pkg/utils/jwt/impl"
 	"net/http"
 	"os"
@@ -10,13 +11,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type KeySyncHandler struct{}
+type KeySyncController struct{}
 
-func NewKeySyncHandler() *KeySyncHandler {
-	return &KeySyncHandler{}
+func NewKeySyncController() *KeySyncController {
+	return &KeySyncController{}
 }
 
-func (h *KeySyncHandler) SyncPublicKeyHandler(c *gin.Context) {
+func (h *KeySyncController) SyncPublicKeyHandler(c *gin.Context) {
 	// Simple handshake check
 	handshakeKey := c.GetHeader("X-Handshake-Key")
 	if handshakeKey != os.Getenv("HANDSHAKE_KEY") {
@@ -41,6 +42,6 @@ func (h *KeySyncHandler) SyncPublicKeyHandler(c *gin.Context) {
 	}
 
 	utils.SetPublicKey(pubKey)
-	fmt.Println("Public Key successfully stored and updated for WebSocket Server.")
+	logger.Info("Public key synced", "public_key", pubKey)
 	c.JSON(http.StatusOK, gin.H{"message": "Public key synced"})
 }

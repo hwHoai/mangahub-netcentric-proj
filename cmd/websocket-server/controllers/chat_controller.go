@@ -1,4 +1,4 @@
-package handler
+package controllers
 
 import (
 	"log"
@@ -9,17 +9,17 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type ChatHandler struct {
+type ChatController struct {
 	chatService websocket_services.ChatService
 }
 
-func NewChatHandler(chatService websocket_services.ChatService) *ChatHandler {
-	return &ChatHandler{
+func NewChatController(chatService websocket_services.ChatService) *ChatController {
+	return &ChatController{
 		chatService: chatService,
 	}
 }
 
-func (h *ChatHandler) HandleWSChatTunnel(c *gin.Context) {
+func (h *ChatController) HandleWSChatTunnel(c *gin.Context) {
 	upgrader := websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
 			return true // Adjust for production

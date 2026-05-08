@@ -1,7 +1,7 @@
 # Windows-friendly Makefile
 PROTO_FILES := $(wildcard proto/*/*.proto)
 
-.PHONY: proto proto-tools proto-generate run-grpc run-api run-tcp run-udp run-ws run-all benchmark-tcp benchmark-udp
+.PHONY: proto proto-tools proto-generate build test test-v test-no-cache run-grpc run-api run-tcp run-udp run-ws run-all benchmark-tcp benchmark-udp
 
 proto:
 	protoc --proto_path=. --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative $(PROTO_FILES)
@@ -13,6 +13,15 @@ proto-tools:
 
 build:
 	go build ./...
+
+test:
+	go test ./...
+
+test-v:
+	go test -v ./...
+
+test-no-cache:
+	go test -count=1 -v ./...
 
 run-grpc:
 	cd cmd/grpc-server && go run main.go

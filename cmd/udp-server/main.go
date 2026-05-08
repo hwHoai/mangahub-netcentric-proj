@@ -36,13 +36,15 @@ func main() {
 	//3. Setup Dispatcher
 	udpServer := dispatch.NewUDPServer()
 
-	//4. Setup Pool and Handlers
+	//4. Setup Pool
 	chapterPool := pool_impl.NewChapterNotificationPool(grpcUserMangaClient)
 	messagePool := pool_impl.NewMessageNotificationPool(grpcUserMangaClient)
+
+	//5. Setup Handlers
 	notificationHandler := handler.NewNotificationHandler(chapterPool, messagePool)
 	keySyncHandler := handler.NewKeySyncHandler()
 
-	// Register handlers
+	//6. Register handlers
 	udpServer.RegisterHandler("chapter:req_client_register", notificationHandler.ClientRegisterHandler)
 	udpServer.RegisterHandler("chapter:broadcast_chapter", notificationHandler.BroadcastChapterHandler)
 	udpServer.RegisterHandler("chat:broadcast_message", notificationHandler.BroadcastMessageHandler)
@@ -54,7 +56,7 @@ func main() {
 		log.Printf("UDP Ping received from %v (ID: %s)", addr, string(msg.Payload))
 	})
 
-	//5. Resolve UDP address and Start
+	//7. Resolve UDP address and Start
 	udpServer.Start(port)
 
 }

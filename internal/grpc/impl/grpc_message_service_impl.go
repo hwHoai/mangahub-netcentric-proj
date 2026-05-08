@@ -2,6 +2,7 @@ package grpc_services_impl
 
 import (
 	"context"
+	"mangahub/internal/grpc"
 	"mangahub/internal/repository"
 	repository_impl "mangahub/internal/repository/impl"
 	"mangahub/pkg/models"
@@ -11,18 +12,20 @@ import (
 	"gorm.io/gorm"
 )
 
-type GRPCMessageServiceImpl struct {
+type GRPCMessageService struct {
 	message.UnimplementedGRPCMessageServiceServer
 	repo repository.MessageRepository
 }
 
-func NewGRPCMessageService(db *gorm.DB) *GRPCMessageServiceImpl {
-	return &GRPCMessageServiceImpl{
+var _ grpc.GRPCMessageService = (*GRPCMessageService)(nil)
+
+func NewGRPCMessageService(db *gorm.DB) *GRPCMessageService {
+	return &GRPCMessageService{
 		repo: repository_impl.NewMessageRepository(db),
 	}
 }
 
-func (s *GRPCMessageServiceImpl) SaveMessage(ctx context.Context, req *message.SaveMessageRequest) (*message.SaveMessageResponse, error) {
+func (s *GRPCMessageService) SaveMessage(ctx context.Context, req *message.SaveMessageRequest) (*message.SaveMessageResponse, error) {
 	msg := models.NewMessageModel(req.SenderId, req.RoomId, req.Content)
 	if err := s.repo.SaveMessage(msg); err != nil {
 		return nil, err
@@ -39,7 +42,7 @@ func (s *GRPCMessageServiceImpl) SaveMessage(ctx context.Context, req *message.S
 	}, nil
 }
 
-func (s *GRPCMessageServiceImpl) GetChatHistory(ctx context.Context, req *message.GetChatHistoryRequest) (*message.GetChatHistoryResponse, error) {
+func (s *GRPCMessageService) GetChatHistory(ctx context.Context, req *message.GetChatHistoryRequest) (*message.GetChatHistoryResponse, error) {
 	limit := int(req.Limit)
 	if limit <= 0 {
 		limit = 50
