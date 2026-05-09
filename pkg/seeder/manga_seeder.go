@@ -3,8 +3,8 @@ package seeder
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"mangahub/pkg/clients"
+	"mangahub/pkg/logger"
 	"mangahub/pkg/models"
 	"mangahub/pkg/models/enums"
 	"strconv"
@@ -28,48 +28,48 @@ func NewMangaSeeder(db *gorm.DB) *MangaSeeder {
 
 // SeedMangaData seeds manga data from MangaDex API
 func (ms *MangaSeeder) SeedMangaData(limit int, numberOfBatches int) error {
-	log.Printf("Starting to seed manga data from MangaDex. Limit: %d, Batches: %d", limit, numberOfBatches)
+	logger.Info("Starting to seed manga data from MangaDex", "limit", limit, "batches", numberOfBatches)
 
 	// 1. Fetch and seed genres/tags first
 	if err := ms.seedGenres(); err != nil {
-		log.Printf("Error seeding genres: %v", err)
+		logger.Error("Error seeding genres", "error", err)
 		return err
 	}
 
 	// 2. Fetch and seed manga data in batches
 	for batch := 0; batch < numberOfBatches; batch++ {
 		offset := batch * limit
-		log.Printf("Fetching batch %d (offset: %d, limit: %d)", batch+1, offset, limit)
+		logger.Info("Fetching batch", "batch", batch+1, "offset", offset, "limit", limit)
 
 		mangaList, err := ms.mangaDexClient.GetMangaList(limit, offset)
 		if err != nil {
-			log.Printf("Error fetching manga list (batch %d): %v", batch+1, err)
+			logger.Error("Error fetching manga list", "batch", batch+1, "error", err)
 			continue
 		}
 
 		if len(mangaList.Data) == 0 {
-			log.Println("No more manga data to fetch")
+			logger.Info("No more manga data to fetch")
 			break
 		}
 
 		for _, mdManga := range mangaList.Data {
 			if err := ms.seedSingleManga(&mdManga); err != nil {
-				log.Printf("Error seeding manga %s: %v", mdManga.ID, err)
+				logger.Error("Error seeding manga", "mangaID", mdManga.ID, "error", err)
 				continue
 			}
 		}
 
-		log.Printf("Completed batch %d", batch+1)
+		logger.Info("Completed batch", "batch", batch+1)
 	}
 
-	log.Println("Manga seeding completed!")
+	logger.Info("Manga seeding completed!")
 	return nil
 }
 
 // seedGenres fetches all genres from MangaDex and saves them to database
 // Uses retry logic to handle connection resets from MangaDex WAF
 func (ms *MangaSeeder) seedGenres() error {
-	log.Println("Starting to seed genres...")
+	logger.Info("Starting to seed genres...")
 
 	var tags map[string]clients.TagAttributes
 	var err error
@@ -83,7 +83,7 @@ func (ms *MangaSeeder) seedGenres() error {
 
 		if attempt < 3 {
 			waitTime := time.Duration(attempt*2) * time.Second
-			log.Printf("Attempt %d failed: %v. Retrying in %v...", attempt, err, waitTime)
+			logger.Warn("Attempt failed, retrying...", "attempt", attempt, "error", err, "retryIn", waitTime)
 			time.Sleep(waitTime)
 		} else {
 			return fmt.Errorf("failed to fetch tags after 3 attempts: %w", err)
@@ -127,15 +127,15 @@ func (ms *MangaSeeder) seedGenres() error {
 			}
 
 			if err := ms.db.Create(genre).Error; err != nil {
-				log.Printf("Error saving genre %s: %v", name, err)
+				logger.Error("Error saving genre", "name", name, "error", err)
 				continue
 			}
 
-			log.Printf("Seeded genre: %s (ID: %s)", name, tagID)
+			logger.Info("Seeded genre", "name", name, "id", tagID)
 		}
 	}
 
-	log.Println("Genre seeding completed!")
+	logger.Info("Genre seeding completed!")
 	return nil
 }
 
@@ -179,14 +179,14 @@ func (ms *MangaSeeder) seedSingleManga(mdManga *clients.MangaDexManga) error {
 
 	// Add genres/tags to the manga
 	if err := ms.attachGenresToManga(manga, mdManga.Attributes.Tags); err != nil {
-		log.Printf("Error attaching genres to manga %s: %v", manga.ID, err)
+		logger.Error("Error attaching genres to manga", "mangaID", manga.ID, "error", err)
 	}
 
-	log.Printf("Seeded manga: %s (ID: %s)", title, manga.ID)
+	logger.Info("Seeded manga", "title", title, "id", manga.ID)
 
 	// Fetch and seed chapters (Limit to 10 to save time and API rate limits)
 	if err := ms.seedChaptersForManga(manga.ID, 10); err != nil {
-		log.Printf("Error seeding chapters for manga %s: %v", manga.ID, err)
+		logger.Error("Error seeding chapters for manga", "mangaID", manga.ID, "error", err)
 	}
 
 	return nil
@@ -204,7 +204,7 @@ func (ms *MangaSeeder) attachGenresToManga(manga *models.MangaModel, tags []clie
 		}
 
 		if err := ms.db.Model(manga).Association("Genres").Append(&genre); err != nil {
-			log.Printf("Error associating genre %s: %v", genre.Name, err)
+			logger.Error("Error associating genre", "genre", genre.Name, "error", err)
 			continue
 		}
 	}
@@ -304,7 +304,7 @@ func (ms *MangaSeeder) mapStatus(mdStatus string) enums.MangaStatus {
 
 // seedChaptersForManga fetches chapters from MangaDex and saves them
 func (ms *MangaSeeder) seedChaptersForManga(mangaID string, limit int) error {
-	log.Printf("Fetching chapters for manga %s", mangaID)
+	logger.Info("Fetching chapters for manga", "mangaID", mangaID)
 
 	chapterList, err := ms.mangaDexClient.GetMangaChapters(mangaID, limit)
 	if err != nil {
@@ -321,7 +321,7 @@ func (ms *MangaSeeder) seedChaptersForManga(mangaID string, limit int) error {
 		if err := ms.db.Where("id = ?", mdChapter.ID).First(&existingChapter).Error; err == nil {
 			continue // Already exists
 		} else if err != gorm.ErrRecordNotFound {
-			log.Printf("Database error checking chapter %s: %v", mdChapter.ID, err)
+			logger.Error("Database error checking chapter", "chapterID", mdChapter.ID, "error", err)
 			continue
 		}
 
@@ -339,14 +339,14 @@ func (ms *MangaSeeder) seedChaptersForManga(mangaID string, limit int) error {
 		time.Sleep(500 * time.Millisecond)
 		pages, err := ms.mangaDexClient.GetChapterPages(mdChapter.ID)
 		if err != nil {
-			log.Printf("Error fetching pages for chapter %s: %v", mdChapter.ID, err)
+			logger.Error("Error fetching pages for chapter", "chapterID", mdChapter.ID, "error", err)
 			continue
 		}
 
 		// Serialize pages to JSON string
 		pagesDataBytes, err := json.Marshal(pages)
 		if err != nil {
-			log.Printf("Error marshaling pages for chapter %s: %v", mdChapter.ID, err)
+			logger.Error("Error marshaling pages for chapter", "chapterID", mdChapter.ID, "error", err)
 			continue
 		}
 
@@ -355,10 +355,10 @@ func (ms *MangaSeeder) seedChaptersForManga(mangaID string, limit int) error {
 		chapter.ID = mdChapter.ID // Use MangaDex ID for consistency
 
 		if err := ms.db.Create(chapter).Error; err != nil {
-			log.Printf("Failed to save chapter %s: %v", mdChapter.ID, err)
+			logger.Error("Failed to save chapter", "chapterID", mdChapter.ID, "error", err)
 			continue
 		}
-		log.Printf("Seeded chapter %s (ID: %s) with %d pages", chapNumStr, mdChapter.ID, len(pages))
+		logger.Info("Seeded chapter", "chapter", chapNumStr, "id", mdChapter.ID, "pages", len(pages))
 	}
 
 	return nil

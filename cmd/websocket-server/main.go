@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"os"
 
 	"mangahub/cmd/websocket-server/routes"
@@ -29,7 +28,7 @@ func main() {
 	routes.SetupRoutes(r)
 
 	// 3. Run Server
-	log.Printf("WebSocket Server is running on port %s", port)
+	logger.Info("WebSocket Server is running", "port", port)
 	if err := r.Run(":" + port); err != nil {
 		logger.Error("Failed to start WebSocket server", "error", err)
 	}

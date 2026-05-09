@@ -46,6 +46,12 @@ GET {{baseUrl}}/api/v1/mangas/{{mangaId}}/chapters
 ### Read chapter (Public)
 GET {{baseUrl}}/api/v1/chapters/{{chapterId}}
 
+### Get chat history
+GET {{baseUrl}}/api/v1/mangas/{{mangaId}}/messages
+
+### Get chat history
+GET {{baseUrl}}/api/v1/quotes
+
 ###########################################################
 # User Manga APIs (Require Authentication)
 ###########################################################

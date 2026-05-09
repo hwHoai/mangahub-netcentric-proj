@@ -1,14 +1,11 @@
 package main
 
 import (
-	"log"
 	"mangahub/cmd/udp-server/dispatch"
 	"mangahub/cmd/udp-server/handler"
 	pool_impl "mangahub/cmd/udp-server/utils/pool/impl"
 	"mangahub/pkg/clients"
 	"mangahub/pkg/logger"
-	"mangahub/pkg/types"
-	"net"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -17,7 +14,7 @@ import (
 func main() {
 	//1. Load env
 	if err := godotenv.Load("../../.env"); err != nil {
-		log.Println("Warning: No .env file found, using environment variables if set")
+		logger.Warn("No .env file found, using environment variables if set")
 	}
 	port := ":" + os.Getenv("UDP_SERVER_PORT")
 	if port == ":" {
@@ -29,7 +26,8 @@ func main() {
 	//2. Setup gRPC client
 	grpcUserMangaClient, grpcConn, err := clients.NewUserMangaGRPCClient()
 	if err != nil {
-		log.Fatalf("Failed to create gRPC client: %v", err)
+		logger.Error("Failed to create gRPC client", "error", err)
+		os.Exit(1)
 	}
 	defer grpcConn.Close()
 
@@ -39,10 +37,12 @@ func main() {
 	//4. Setup Pool
 	chapterPool := pool_impl.NewChapterNotificationPool(grpcUserMangaClient)
 	messagePool := pool_impl.NewMessageNotificationPool(grpcUserMangaClient)
+	benchmarkPool := pool_impl.NewBenchmarkPool()
 
 	//5. Setup Handlers
 	notificationHandler := handler.NewNotificationHandler(chapterPool, messagePool)
 	keySyncHandler := handler.NewKeySyncHandler()
+	benchmarkHandler := handler.NewBenchmarkHandler(benchmarkPool)
 
 	//6. Register handlers
 	udpServer.RegisterHandler("chapter:req_client_register", notificationHandler.ClientRegisterHandler)
@@ -51,10 +51,9 @@ func main() {
 	udpServer.RegisterHandler("chapter:ack_notification", notificationHandler.NotificationAckHandler)
 	udpServer.RegisterHandler("pub_key:impl_sync_public_key", keySyncHandler.SyncPublicKeyHandler)
 
-	// Benchmark handler (Ping-Pong)
-	udpServer.RegisterHandler("benchmark:test_ping", func(s *dispatch.UDPServer, addr *net.UDPAddr, msg types.UDPMessage) {
-		log.Printf("UDP Ping received from %v (ID: %s)", addr, string(msg.Payload))
-	})
+	// Benchmark handler (Ping-Pong & Broadcast)
+	udpServer.RegisterHandler("benchmark:test_ping", benchmarkHandler.PingHandler)
+	udpServer.RegisterHandler("benchmark:trigger_broadcast", benchmarkHandler.BroadcastHandler)
 
 	//7. Resolve UDP address and Start
 	udpServer.Start(port)

@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"log"
 	"mangahub/internal/websocket"
+	"mangahub/pkg/logger"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -28,7 +28,7 @@ func (h *ChatController) HandleWSChatTunnel(c *gin.Context) {
 
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
-		log.Printf("Failed to upgrade connection: %v", err)
+		logger.Error("Failed to upgrade connection", "error", err)
 		return
 	}
 

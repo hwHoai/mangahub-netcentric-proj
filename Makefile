@@ -40,10 +40,10 @@ run-ws:
 
 # Benchmarks
 benchmark-tcp:
-	go run internal/benchmarks/tcp_stress/main.go -conns 2000
+	go run internal/benchmarks/tcp_stress/main.go -conns 16000
 
 benchmark-udp:
-	go run internal/benchmarks/udp_reliability/main.go -n 2000
+	go run internal/benchmarks/udp_broadcast/main.go -clients 16000
 
 # Note: On Windows, it's highly recommended to run servers in separate terminals.
 # This command will launch 5 separate PowerShell windows.

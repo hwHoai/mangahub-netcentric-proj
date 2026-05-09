@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	tcp_services "mangahub/internal/tcp"
+	"mangahub/pkg/logger"
 	"mangahub/pkg/types"
 	"net"
 	"os"
@@ -21,7 +22,7 @@ func NewTCPChapterSyncService(addr string) tcp_services.TCPChapterSyncServices {
 }
 
 func (c *TCPChapterSyncServiceImpl) SyncReading(userID string, chapterID string) error {
-	fmt.Println("SyncReading", userID, chapterID)
+	logger.Info("SyncReading", "userID", userID, "chapterID", chapterID)
 	conn, err := net.DialTimeout("tcp", c.addr, 2*time.Second)
 	if err != nil {
 		return fmt.Errorf("failed to connect to TCP server: %v", err)

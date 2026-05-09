@@ -2,11 +2,11 @@ package routes
 
 import (
 	"crypto/rsa"
-	"log"
 	manga_services_impl "mangahub/internal/manga/impl"
 	scrape_services_impl "mangahub/internal/scrape/impl"
 	user_services_impl "mangahub/internal/user/impl"
 	"mangahub/pkg/clients"
+	"mangahub/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 )
@@ -51,7 +51,7 @@ func SetupRoutes(r *gin.Engine, privateKey *rsa.PrivateKey, publicKey *rsa.Publi
 	//2. Init UDP services
 	udpNotificationClient, err := clients.NewUDPNotificationClient()
 	if err != nil {
-		log.Printf("Warning: failed to initialize UDP notification services: %v", err)
+		logger.Warn("failed to initialize UDP notification services", "error", err)
 	}
 
 	// 2. Initialize Services

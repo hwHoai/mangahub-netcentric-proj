@@ -2,8 +2,7 @@ package pool_impl
 
 import (
 	"context"
-	"fmt"
-	"log"
+	"mangahub/pkg/logger"
 	"net"
 	"sync"
 	"time"
@@ -81,10 +80,10 @@ func (p *ChapterSyncPool) saveReadingProgress(userID, chapterID string) {
 		ChapterId: chapterID,
 	})
 	if err != nil {
-		log.Printf("Failed to save reading progress for user %s, chapter %s: %v", userID, chapterID, err)
+		logger.Error("Failed to save reading progress", "userID", userID, "chapterID", chapterID, "error", err)
 		return
 	}
-	log.Printf("Successfully saved reading progress for user %s, chapter %s", userID, chapterID)
+	logger.Info("Successfully saved reading progress", "userID", userID, "chapterID", chapterID)
 
 	p.mu.Lock()
 	delete(p.lastChapters, userID)
@@ -103,7 +102,7 @@ func (p *ChapterSyncPool) Broadcast(userID string, message []byte) {
 	for _, conn := range conns {
 		_, err := conn.Write(append(message, '\n'))
 		if err != nil {
-			fmt.Printf("Error sending to connection: %v\n", err)
+			logger.Error("Error sending to connection", "error", err)
 		}
 	}
 }

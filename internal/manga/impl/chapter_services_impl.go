@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"mangahub/internal/manga"
+	"mangahub/pkg/logger"
 	"mangahub/pkg/models"
 	"mangahub/pkg/utils"
 	"mangahub/proto/chapter"
@@ -103,7 +103,7 @@ func (s *ChapterServiceImpl) CreateNewChapter(ctx context.Context, mangaID, mang
 	if s.udpNotificationServices != nil {
 		s.udpNotificationServices.SendNewChapterNotification(mangaID, createRes.Id, chapterDetails.Attributes.Title, chapterNumber)
 	} else {
-		log.Printf("UDP Notification Services is not initialized")
+		logger.Warn("UDP Notification Services is not initialized")
 	}
 
 	return createRes.Id, nil
