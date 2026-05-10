@@ -46,14 +46,15 @@ func main() {
 
 	//6. Register handlers
 	udpServer.RegisterHandler("chapter:req_client_register", notificationHandler.ClientRegisterHandler)
-	udpServer.RegisterHandler("chapter:broadcast_chapter", notificationHandler.BroadcastChapterHandler)
-	udpServer.RegisterHandler("chat:broadcast_message", notificationHandler.BroadcastMessageHandler)
-	udpServer.RegisterHandler("chapter:ack_notification", notificationHandler.NotificationAckHandler)
+	udpServer.RegisterHandler("chapter:impl_broadcast_chapter", notificationHandler.BroadcastChapterHandler)
+	udpServer.RegisterHandler("chat:impl_broadcast_message", notificationHandler.BroadcastMessageHandler)
+	udpServer.RegisterHandler("chapter:res_ack_notification", notificationHandler.NotificationAckHandler)
 	udpServer.RegisterHandler("pub_key:impl_sync_public_key", keySyncHandler.SyncPublicKeyHandler)
 
-	// Benchmark handler (Ping-Pong & Broadcast)
-	udpServer.RegisterHandler("benchmark:test_ping", benchmarkHandler.PingHandler)
-	udpServer.RegisterHandler("benchmark:trigger_broadcast", benchmarkHandler.BroadcastHandler)
+	// Benchmark handler
+	udpServer.RegisterHandler("benchmark:test_register", benchmarkHandler.PingHandler)
+	udpServer.RegisterHandler("benchmark:test_ack", benchmarkHandler.AckHandler)
+	udpServer.RegisterHandler("benchmark:test_trigger_broadcast", benchmarkHandler.BroadcastHandler)
 
 	//7. Resolve UDP address and Start
 	udpServer.Start(port)

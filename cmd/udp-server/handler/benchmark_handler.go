@@ -1,13 +1,14 @@
 package handler
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"mangahub/cmd/udp-server/dispatch"
 	udp_pools "mangahub/cmd/udp-server/utils/pool"
 	"mangahub/pkg/logger"
 	"mangahub/pkg/types"
 	"net"
-	"time"
+	"sort"
 )
 
 type BenchmarkHandler struct {
@@ -19,27 +20,47 @@ func NewBenchmarkHandler(pool udp_pools.UDPPool) *BenchmarkHandler {
 }
 
 func (h *BenchmarkHandler) PingHandler(s *dispatch.UDPServer, addr *net.UDPAddr, msg types.UDPMessage) {
-	// Simulate heavy work (e.g., Database Query, Image processing)
-	time.Sleep(2000 * time.Millisecond)
-
-	// Register client in pool
-	h.pool.Register(addr.String(), addr)
+	
+	_, port, _ := net.SplitHostPort(addr.String())
+	h.pool.Register(port, addr)
 
 	response := types.UDPMessage{
 		Action:  "benchmark:res_register",
-		Payload: json.RawMessage(`{"status": "ok", "msg": "REGISTER_SUCCESS"}`),
+		Payload: json.RawMessage(`{"status": "ok"}`),
 	}
 	data, _ := json.Marshal(response)
-	
-	// Send registration confirmation
-	s.Conn.WriteToUDP(append(data, '\n'), addr)
-	
-	logger.Info("UDP Subscriber registered (MOCK)", "addr", addr.String())
+	s.Conn.WriteToUDP(data, addr)
+}
+
+func (h *BenchmarkHandler) AckHandler(s *dispatch.UDPServer, addr *net.UDPAddr, msg types.UDPMessage) {
+	var data struct {
+		NotificationID string `json:"notification_id"`
+	}
+	json.Unmarshal(msg.Payload, &data)
+
+	// Sử dụng Port làm ID duy nhất trên localhost để tránh mismatch IPv4/IPv6 string
+	_, port, _ := net.SplitHostPort(addr.String())
+	h.pool.ProcessAck(data.NotificationID, port)
 }
 
 func (h *BenchmarkHandler) BroadcastHandler(s *dispatch.UDPServer, addr *net.UDPAddr, msg types.UDPMessage) {
-	// Trigger a broadcast to all registered benchmark clients
-	logger.Info("UDP Broadcast trigger received", "from", addr.String())
+	// --- EXTREME DATA PREPARATION (Before Broadcast) ---
+	tokenSecret := []byte("manga_hub_vanguard_broadcast_prep_2026")
+	for i := 0; i < 20000; i++ {
+		hash := sha256.Sum256(tokenSecret)
+		tokenSecret = hash[:]
+	}
+
+	priorityList := make([]int, 2000)
+	for i := 0; i < 2000; i++ {
+		priorityList[i] = 2000 - i
+	}
+	sort.Ints(priorityList)
+
+	_ = make([]byte, 512*1024)
+	// ----------------------------------------------------
+
+	logger.Info("🚀 UDP Broadcast Triggered (Heavy Prep Done)", "from", addr.String())
 
 	// Mock Chapter Notification
 	payload := map[string]interface{}{
@@ -53,5 +74,6 @@ func (h *BenchmarkHandler) BroadcastHandler(s *dispatch.UDPServer, addr *net.UDP
 		},
 	}
 
-	h.pool.Broadcast(s.Conn, "all", payload)
+	h.pool.Broadcast(s.Conn, "notif_001", payload)
+	
 }

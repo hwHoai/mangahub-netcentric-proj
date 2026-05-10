@@ -3,21 +3,31 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"mangahub/cmd/tcp-server/dispatch"
 	"mangahub/cmd/tcp-server/handler"
-	"mangahub/cmd/tcp-server/utils/pool"
+	pools "mangahub/cmd/tcp-server/utils/pool"
 	pool_impl "mangahub/cmd/tcp-server/utils/pool/impl"
 	"mangahub/pkg/clients"
 	"mangahub/pkg/logger"
 	"mangahub/pkg/types"
 	"net"
+	"net/http"
 	"os"
 	"time"
 
 	"github.com/joho/godotenv"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
+	// Prometheus Exporter
+	go func() {
+		http.Handle("/metrics", promhttp.Handler())
+		fmt.Println("Prometheus metrics available at http://localhost:2112/metrics")
+		http.ListenAndServe(":2112", nil)
+	}()
+
 	// 1. Load env
 	if err := godotenv.Load("../../.env"); err != nil {
 		logger.Warn("No .env file found, using environment variables if set")
@@ -58,7 +68,7 @@ func main() {
 	dispatcher.RegisterHandler("pub_key:impl_sync_public_key", keySyncHandler.SyncPublicKeyHandler)
 
 	// Benchmark handler (Ping-Pong)
-	dispatcher.RegisterHandler("benchmark:register", benchmarkHandler.RegisterHandler)
+	dispatcher.RegisterHandler("benchmark:test_register", benchmarkHandler.RegisterHandler)
 	dispatcher.RegisterHandler("benchmark:test_ping", benchmarkHandler.PingHandler)
 	// dispatcher.RegisterHandler("benchmark:res_pong", benchmarkHandler.PongHandler)
 
@@ -78,8 +88,6 @@ func main() {
 			logger.Error("Error accepting connection", "error", err)
 			continue
 		}
-
-		// 5. Handle connection in a new goroutine to allow multiple clients
 		go handleTCPConnection(conn, dispatcher, []pools.ConnectionPool{
 			chapterSyncPool,
 			benchmarkPool,

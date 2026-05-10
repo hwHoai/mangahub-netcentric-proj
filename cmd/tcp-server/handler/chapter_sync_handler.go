@@ -34,7 +34,7 @@ func (h *ChapterSyncHandler) RegisterConnectionHandler(conn net.Conn, payload an
 	h.pool.Register(data.UserID, conn)
 
 	newProgressMsg, _ := json.Marshal(map[string]any{
-		"action": "chapter_sync:on_new_read_progress",
+		"action": "chapter_sync:on_sync_progress",
 		"payload": map[string]string{
 			"chapter_id": h.pool.GetLastChapter(data.UserID),
 		},
@@ -67,7 +67,7 @@ func (h *ChapterSyncHandler) BroadcastReadHandler(conn net.Conn, payload any) {
 	h.pool.UpdateLastChapter(data.UserID, data.ChapterID)
 
 	syncMsg, _ := json.Marshal(map[string]any{
-		"action": "chapter_sync:on_new_read_progress",
+		"action": "chapter_sync:on_sync_progress",
 		"payload": map[string]string{
 			"chapter_id": data.ChapterID,
 		},

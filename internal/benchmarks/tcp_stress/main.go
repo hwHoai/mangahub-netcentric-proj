@@ -44,9 +44,9 @@ func main() {
 			}
 			defer conn.Close()
 
-			// Phase 1: Register
+			// 1. REGISTER PHASE
 			regMsg := types.TCPMessage{
-				Action:  "benchmark:register",
+				Action:  "benchmark:test_register",
 				Payload: json.RawMessage(fmt.Sprintf(`{"user_id": "%s"}`, userID)),
 			}
 			data, _ := json.Marshal(regMsg)
@@ -59,9 +59,6 @@ func main() {
 			} else {
 				return
 			}
-
-			// Wait for all to finish Phase 1
-			<-phase2Start
 
 			// Wait for the Burst Command
 			<-phase2Start
