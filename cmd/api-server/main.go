@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -24,8 +23,7 @@ import (
 func main() {
 	// 1. Load file .env	
 	if err := godotenv.Load("../../.env"); err != nil {
-		// log.Fatalf will stop the program
-		log.Println("Warning: No .env file found, using environment variables if set")
+		logger.Warn("No .env file found, using environment variables if set")
 	}
 
 	// Initialize Logger
@@ -74,20 +72,21 @@ func main() {
 	jwtUtil := jwt_impl.NewJWTUtil(nil)
 	privateKey, publicKey, err := jwtUtil.CreateRSAKeyPair(2048)
 	if err != nil {
-		log.Fatalf("failed to create JWT key pair: %v", err)
+		logger.Error("failed to create JWT key pair", "error", err)
+		os.Exit(1)
 	}
 
 	// 4.1 Broadcast public key to TCP server
 	publicKeyPEM, _ := jwtUtil.StringifyPublicKeyPEM(publicKey)
 	tcpKeySyncService := tcp_services_impl.NewTCPKeySyncService(tcpAddr)
 	if err := tcpKeySyncService.SyncPublicKey(publicKeyPEM); err != nil {
-		log.Printf("Warning: failed to broadcast public key to TCP server: %v", err)
+		logger.Warn("failed to broadcast public key to TCP server", "error", err)
 	}
 
 	// 4.2 Broadcast public key to UDP server
 	udpKeySyncService := udp_services_impl.NewUDPKeySyncService(udpAddr)
 	if err := udpKeySyncService.SyncPublicKey(publicKeyPEM); err != nil {
-		log.Printf("Warning: failed to broadcast public key to UDP server: %v", err)
+		logger.Warn("failed to broadcast public key to UDP server", "error", err)
 	}
 
 	// 4.3 Broadcast public key to WebSocket server
@@ -98,7 +97,7 @@ func main() {
 	wsAddr := "localhost:" + wsPort
 	wsKeySyncService := websocket_impl.NewWSKeySyncService(wsAddr)
 	if err := wsKeySyncService.SyncPublicKey(publicKeyPEM); err != nil {
-		log.Printf("Warning: failed to broadcast public key to WebSocket server: %v", err)
+		logger.Warn("failed to broadcast public key to WebSocket server", "error", err)
 	}
 	
 	// 5. Routes definition
@@ -132,11 +131,12 @@ func getServerConfiguration(r *gin.Engine) (string, *http.Server) {
 }
 
 func startServer(port string, srv *http.Server) {
-	log.Printf("Server starting on port %s", port)
+	logger.Info("Server starting", "port", port)
 	
 	// 2. Start Server
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatalf("Listen error: %s\n", err)
+		logger.Error("Listen error", "error", err)
+		os.Exit(1)
 	}
 }
 

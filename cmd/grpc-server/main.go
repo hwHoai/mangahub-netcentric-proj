@@ -1,8 +1,6 @@
 package main
 
 import (
-	"log"
-
 	grpc_services_impl "mangahub/internal/grpc/impl"
 	dbImpl "mangahub/internal/database/impl"
 	"mangahub/pkg/seeder"
@@ -24,7 +22,7 @@ import (
 func main() {
 	// 1. Load env
 	if err := godotenv.Load("../../.env"); err != nil {
-		log.Println("Warning: No .env file found, using environment variables if set")
+		logger.Warn("No .env file found, using environment variables if set")
 	}
 	port := ":" + os.Getenv("GRPC_SERVER_PORT")
 	if port == ":" {
@@ -41,7 +39,8 @@ func main() {
 	database := &dbImpl.SqliteConnImpl{}
 	dbConn, err := database.InitDB(dbPath)
 	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+		logger.Error("Failed to connect to database", "error", err)
+		os.Exit(1)
 	}
 
 	// 2. Seed manga data from MangaDex API
@@ -56,25 +55,27 @@ func main() {
 	// 5. Listen for connections
 	listener, err := net.Listen("tcp", port)
 	if err != nil {
-		log.Fatalf("Start gRPC Server error: %v", err)
+		logger.Error("Start gRPC Server error", "error", err)
+		os.Exit(1)
 	}
 
 	// 6. Run Server
-	log.Printf("gRPC Server is running on port %s", port)
+	logger.Info("gRPC Server is running", "port", port)
 	if err := grpcServer.Serve(listener); err != nil {
-		log.Fatalf("Start gRPC Server error: %v", err)
+		logger.Error("Start gRPC Server error", "error", err)
+		os.Exit(1)
 	}
 }
 
 // seedData retrieves manga data from MangaDex API and stores it in the database
 // It fetches 50 manga per batch and processes 2 batches (100 manga total)
 func seedData(db *gorm.DB) {
-	log.Println("=== Starting Manga Data Seeding ===")
+	logger.Info("=== Starting Manga Data Seeding ===")
 
 	// Check if database already has manga data
 	var count int64
 	if err := db.Model(&struct{}{}).Table("mangas").Count(&count).Error; err == nil && count > 0 {
-		log.Printf("Database already contains %d manga. Skipping seeding.", count)
+		logger.Info("Database already contains manga. Skipping seeding.", "count", count)
 		return
 	}
 
@@ -84,11 +85,11 @@ func seedData(db *gorm.DB) {
 	// Seed manga data: 50 per batch, 2 batches = 100 manga
 	// Adjust these values as needed
 	if err := mangaSeeder.SeedMangaData(50, 2); err != nil {
-		log.Printf("Error during manga seeding: %v", err)
+		logger.Error("Error during manga seeding", "error", err)
 		// Don't fatally fail if seeding fails - the server can still run
 	}
 
-	log.Println("=== Manga Data Seeding Completed ===")
+	logger.Info("=== Manga Data Seeding Completed ===")
 }
 
 // registerServices registers all gRPC services with the server.

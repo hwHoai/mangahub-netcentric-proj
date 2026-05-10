@@ -2,11 +2,11 @@ package routes
 
 import (
 	"crypto/rsa"
-	"log"
 	manga_services_impl "mangahub/internal/manga/impl"
-	udp_services_impl "mangahub/internal/udp/impl"
+	scrape_services_impl "mangahub/internal/scrape/impl"
 	user_services_impl "mangahub/internal/user/impl"
 	"mangahub/pkg/clients"
+	"mangahub/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,10 +14,6 @@ import (
 func SetupRoutes(r *gin.Engine, privateKey *rsa.PrivateKey, publicKey *rsa.PublicKey) {
 	// 0. Setup shared clients
 	mangaDexClient := clients.NewMangaDexClient()
-	udpNotificationServices, err := udp_services_impl.NewNotificationServicesImpl()
-	if err != nil {
-		log.Printf("Warning: failed to initialize UDP notification services: %v", err)
-	}
 
 	//1. Define gRPC clients for services
 	grpcUserClient, _, err := clients.NewUserGRPCClient()
@@ -52,11 +48,18 @@ func SetupRoutes(r *gin.Engine, privateKey *rsa.PrivateKey, publicKey *rsa.Publi
 
 	tcpChapterSyncClient := clients.NewTCPChapterSyncClient()
 
+	//2. Init UDP services
+	udpNotificationClient, err := clients.NewUDPNotificationClient()
+	if err != nil {
+		logger.Warn("failed to initialize UDP notification services", "error", err)
+	}
+
 	// 2. Initialize Services
 	mangaService := manga_services_impl.NewMangaService(grpcMangaClient)
-	chapterService := manga_services_impl.NewChapterService(grpcChapterClient, udpNotificationServices, mangaDexClient)
+	chapterService := manga_services_impl.NewChapterService(grpcChapterClient, udpNotificationClient, mangaDexClient)
 	userMangaService := user_services_impl.NewUserMangaService(grpcUserMangaClient)
 	userService := user_services_impl.NewUserService(grpcUserClient)
+	scrapeService := scrape_services_impl.NewScrapeService()
 
 	//3. Route definition
 	v1 := r.Group("api/v1")
@@ -73,6 +76,7 @@ func SetupRoutes(r *gin.Engine, privateKey *rsa.PrivateKey, publicKey *rsa.Publi
 		MangaService:      mangaService,
 		ChapterService:    chapterService,
 		UserService:       userService,
+		ScrapeService:     scrapeService,
 		GRPCMessageClient: grpcMessageClient,
 		PrivateKey:        privateKey,
 		PublicKey:         publicKey,
@@ -82,7 +86,7 @@ func SetupRoutes(r *gin.Engine, privateKey *rsa.PrivateKey, publicKey *rsa.Publi
 	private_route_opts := &PrivateRouteOpts{
 		PublicKey:            publicKey,
 		UserMangaService:     userMangaService,
-		UserService:            userService,
+		UserService:          userService,
 		GRPCUserClient:       grpcUserClient,
 		GRPCSessionClient:    grpcSessionClient,
 		ChapterService:       chapterService,

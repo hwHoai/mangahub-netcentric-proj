@@ -2,8 +2,8 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	pool_impl "mangahub/cmd/tcp-server/utils/pool/impl"
+	"mangahub/pkg/logger"
 	"net"
 )
 
@@ -22,26 +22,26 @@ func (h *ChapterSyncHandler) RegisterConnectionHandler(conn net.Conn, payload an
 	
 	raw, ok := payload.(json.RawMessage)
 	if !ok {
-		fmt.Println("Invalid payload type for register")
+		logger.Error("Invalid payload type for register")
 		return
 	}
 
 	if err := json.Unmarshal(raw, &data); err != nil {
-		fmt.Printf("Error unmarshaling register payload: %v\n", err)
+		logger.Error("Error unmarshaling register payload", "error", err)
 		return
 	}
 
 	h.pool.Register(data.UserID, conn)
 
 	newProgressMsg, _ := json.Marshal(map[string]any{
-		"action": "chapter_sync:on_new_read_progress",
+		"action": "chapter_sync:on_sync_progress",
 		"payload": map[string]string{
 			"chapter_id": h.pool.GetLastChapter(data.UserID),
 		},
 	})
 
 	h.pool.BroadcastOne(data.UserID, newProgressMsg, conn)
-	fmt.Printf("User %s registered connection\n", data.UserID)
+	logger.Info("User registered connection", "userID", data.UserID)
 	conn.Write([]byte("Registered successfully\n"))
 }
 
@@ -53,21 +53,21 @@ func (h *ChapterSyncHandler) BroadcastReadHandler(conn net.Conn, payload any) {
 
 	raw, ok := payload.(json.RawMessage)
 	if !ok {
-		fmt.Println("Invalid payload type for broadcast_read")
+		logger.Error("Invalid payload type for broadcast_read")
 		return
 	}
 
 	if err := json.Unmarshal(raw, &data); err != nil {
-		fmt.Printf("Error unmarshaling broadcast_read payload: %v\n", err)
+		logger.Error("Error unmarshaling broadcast_read payload", "error", err)
 		return
 	}
 
-	fmt.Printf("Broadcasting sync_reading for user %s, chapter %s\n", data.UserID, data.ChapterID)
+	logger.Info("Broadcasting sync_reading", "userID", data.UserID, "chapterID", data.ChapterID)
 	
 	h.pool.UpdateLastChapter(data.UserID, data.ChapterID)
 
 	syncMsg, _ := json.Marshal(map[string]any{
-		"action": "chapter_sync:on_new_read_progress",
+		"action": "chapter_sync:on_sync_progress",
 		"payload": map[string]string{
 			"chapter_id": data.ChapterID,
 		},

@@ -1,23 +1,27 @@
 package main
 
 import (
-	"log"
+	benchmarks_prometheus "mangahub/benchmarks/prometheus"
 	"mangahub/cmd/udp-server/dispatch"
 	"mangahub/cmd/udp-server/handler"
 	pool_impl "mangahub/cmd/udp-server/utils/pool/impl"
 	"mangahub/pkg/clients"
 	"mangahub/pkg/logger"
-	"mangahub/pkg/types"
-	"net"
 	"os"
 
 	"github.com/joho/godotenv"
 )
 
 func main() {
+	// Intit Prometheus benchmark metrics
+	prometheusMetrics := benchmarks_prometheus.InitMetrics("udp_server", "9091")
+
+	// Start Prometheus metrics server
+	go prometheusMetrics.ExportMetrics()
+
 	//1. Load env
 	if err := godotenv.Load("../../.env"); err != nil {
-		log.Println("Warning: No .env file found, using environment variables if set")
+		logger.Warn("No .env file found, using environment variables if set")
 	}
 	port := ":" + os.Getenv("UDP_SERVER_PORT")
 	if port == ":" {
@@ -29,32 +33,37 @@ func main() {
 	//2. Setup gRPC client
 	grpcUserMangaClient, grpcConn, err := clients.NewUserMangaGRPCClient()
 	if err != nil {
-		log.Fatalf("Failed to create gRPC client: %v", err)
+		logger.Error("Failed to create gRPC client", "error", err)
+		os.Exit(1)
 	}
 	defer grpcConn.Close()
 
 	//3. Setup Dispatcher
 	udpServer := dispatch.NewUDPServer()
 
-	//4. Setup Pool and Handlers
-	chapterPool := pool_impl.NewChapterNotificationPool(grpcUserMangaClient)
-	messagePool := pool_impl.NewMessageNotificationPool(grpcUserMangaClient)
+	//4. Setup Pool
+	chapterPool := pool_impl.NewChapterNotificationPool(grpcUserMangaClient, prometheusMetrics)
+	messagePool := pool_impl.NewMessageNotificationPool(grpcUserMangaClient, prometheusMetrics)
+	benchmarkPool := pool_impl.NewBenchmarkPool(prometheusMetrics)
+
+	//5. Setup Handlers
 	notificationHandler := handler.NewNotificationHandler(chapterPool, messagePool)
 	keySyncHandler := handler.NewKeySyncHandler()
+	benchmarkHandler := handler.NewBenchmarkHandler(benchmarkPool)
 
-	// Register handlers
+	//6. Register handlers
 	udpServer.RegisterHandler("chapter:req_client_register", notificationHandler.ClientRegisterHandler)
-	udpServer.RegisterHandler("chapter:broadcast_chapter", notificationHandler.BroadcastChapterHandler)
-	udpServer.RegisterHandler("chat:broadcast_message", notificationHandler.BroadcastMessageHandler)
-	udpServer.RegisterHandler("chapter:ack_notification", notificationHandler.NotificationAckHandler)
+	udpServer.RegisterHandler("chapter:impl_broadcast_chapter", notificationHandler.BroadcastChapterHandler)
+	udpServer.RegisterHandler("chat:impl_broadcast_message", notificationHandler.BroadcastMessageHandler)
+	udpServer.RegisterHandler("chapter:res_ack_notification", notificationHandler.NotificationAckHandler)
 	udpServer.RegisterHandler("pub_key:impl_sync_public_key", keySyncHandler.SyncPublicKeyHandler)
 
-	// Benchmark handler (Ping-Pong)
-	udpServer.RegisterHandler("benchmark:test_ping", func(s *dispatch.UDPServer, addr *net.UDPAddr, msg types.UDPMessage) {
-		log.Printf("UDP Ping received from %v (ID: %s)", addr, string(msg.Payload))
-	})
+	// Benchmark handler
+	udpServer.RegisterHandler("benchmark:test_register", benchmarkHandler.PingHandler)
+	udpServer.RegisterHandler("benchmark:test_ack", benchmarkHandler.AckHandler)
+	udpServer.RegisterHandler("benchmark:test_trigger_broadcast", benchmarkHandler.BroadcastHandler)
 
-	//5. Resolve UDP address and Start
+	//7. Resolve UDP address and Start
 	udpServer.Start(port)
 
 }

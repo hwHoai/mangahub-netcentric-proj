@@ -4,9 +4,9 @@ import (
 	"mangahub/internal/manga"
 	"mangahub/internal/user"
 	"mangahub/internal/tcp"
+	"mangahub/pkg/logger"
 	"net/http"
 	"strconv"
-	"log"
 
 	"github.com/gin-gonic/gin"
 )
@@ -94,7 +94,7 @@ func (uc *UserMangaController) ReadChapterWithDevicesSync(c *gin.Context) {
 	// Trigger TCP broadcast to other devices
 	go func() {
 		if err := uc.tcpChapterSyncClient.SyncReading(userID, chapterID); err != nil {
-			log.Printf("Failed to broadcast reading progress: %v", err)
+			logger.Error("Failed to broadcast reading progress", "error", err)
 		}
 	}()
 

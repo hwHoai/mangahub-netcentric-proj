@@ -2,8 +2,8 @@ package middleware
 
 import (
 	"errors"
-	"log"
 	"mangahub/cmd/udp-server/utils"
+	"mangahub/pkg/logger"
 	jwt_impl "mangahub/pkg/utils/jwt/impl"
 	"os"
 	"strings"
@@ -46,7 +46,7 @@ func AuthMiddleware(action, token string) error {
 		// Handshake key check
 		handshakeKey := os.Getenv("HANDSHAKE_KEY")
 		if handshakeKey == "" {
-			log.Println("Warning: HANDSHAKE_KEY environment variable is not set")
+			logger.Warn("HANDSHAKE_KEY environment variable is not set")
 		}
 		if token != handshakeKey {
 			return errors.New("forbidden: invalid handshake key")
@@ -58,7 +58,7 @@ func AuthMiddleware(action, token string) error {
 		return nil
 
 	default:
-		log.Printf("Warning: Action %s has no recognized security category", action)
+		logger.Warn("Action has no recognized security category", "action", action)
 		return nil
 	}
 }

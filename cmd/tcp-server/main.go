@@ -3,11 +3,10 @@ package main
 import (
 	"bufio"
 	"encoding/json"
-	"fmt"
-	"log"
+	benchmarks_prometheus "mangahub/benchmarks/prometheus"
 	"mangahub/cmd/tcp-server/dispatch"
 	"mangahub/cmd/tcp-server/handler"
-	"mangahub/cmd/tcp-server/utils/pool"
+	pools "mangahub/cmd/tcp-server/utils/pool"
 	pool_impl "mangahub/cmd/tcp-server/utils/pool/impl"
 	"mangahub/pkg/clients"
 	"mangahub/pkg/logger"
@@ -20,9 +19,13 @@ import (
 )
 
 func main() {
+	// Prometheus Exporter
+	prometheusMetrics := benchmarks_prometheus.InitMetrics("tcp_server", "2112")
+	go prometheusMetrics.ExportMetrics()
+
 	// 1. Load env
 	if err := godotenv.Load("../../.env"); err != nil {
-		log.Println("Warning: No .env file found, using environment variables if set")
+		logger.Warn("No .env file found, using environment variables if set")
 	}
 	port := ":" + os.Getenv("TCP_SERVER_PORT")
 	if port == ":" {
@@ -34,16 +37,19 @@ func main() {
 	//2. Setup gRPC client
 	grpcUserMangaClient, grpcConn, err := clients.NewUserMangaGRPCClient()
 	if err != nil {
-		log.Fatalf("Failed to create gRPC client: %v", err)
+		logger.Error("Failed to create gRPC client", "error", err)
+		os.Exit(1)
 	}
 	defer grpcConn.Close()
 
 	//3. Setup connection pool
-	chapterSyncPool := pool_impl.NewChapterSyncPool(grpcUserMangaClient)
+	chapterSyncPool := pool_impl.NewChapterSyncPool(grpcUserMangaClient, prometheusMetrics)
+	benchmarkPool := pool_impl.NewBenchmarkPool(prometheusMetrics)
 
 	//4. Init handler
 	chapterSyncHandler := handler.NewChapterSyncHandler(chapterSyncPool)
 	keySyncHandler := handler.NewKeySyncHandler()
+	benchmarkHandler := handler.NewBenchmarkHandler(benchmarkPool)
 
 	//5. Setup dispatcher
 	dispatcher := dispatch.NewDispatcher()
@@ -57,39 +63,29 @@ func main() {
 	dispatcher.RegisterHandler("pub_key:impl_sync_public_key", keySyncHandler.SyncPublicKeyHandler)
 
 	// Benchmark handler (Ping-Pong)
-	dispatcher.RegisterHandler("benchmark:test_ping", func(conn net.Conn, payload any) {
-		response := types.TCPMessage{
-			Action:  "benchmark:res_pong",
-			Payload: json.RawMessage(`{"status": "ok", "msg": "PONG"}`),
-		}
-		data, _ := json.Marshal(response)
-		fmt.Fprintln(conn, string(data))
-	})
-
-	dispatcher.RegisterHandler("benchmark:res_pong", func(conn net.Conn, payload any) {
-		// Just a placeholder to show it's received on server logs
-		// No action needed
-	})
+	dispatcher.RegisterHandler("benchmark:test_register", benchmarkHandler.RegisterHandler)
+	dispatcher.RegisterHandler("benchmark:test_ping", benchmarkHandler.PingHandler)
+	// dispatcher.RegisterHandler("benchmark:res_pong", benchmarkHandler.PongHandler)
 
 	//7. Open TCP port
 	listener, err := net.Listen("tcp", port)
 	if err != nil {
-		log.Fatalf("Start TCP Server error: %v", err)
+		logger.Error("Start TCP Server error", "error", err)
+		os.Exit(1)
 	}
 	defer listener.Close()
-	log.Printf("TCP server started on port %s", port)
+	logger.Info("TCP server started", "port", port)
 
 	// 4. Accept incoming connections
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			log.Printf("Error accepting connection: %v", err)
+			logger.Error("Error accepting connection", "error", err)
 			continue
 		}
-
-		// 5. Handle connection in a new goroutine to allow multiple clients
 		go handleTCPConnection(conn, dispatcher, []pools.ConnectionPool{
 			chapterSyncPool,
+			benchmarkPool,
 		})
 	}
 }
@@ -102,7 +98,7 @@ func handleTCPConnection(conn net.Conn, dispatcher *dispatch.Dispatcher, pools [
 			go pool.Unregister(conn)
 		}
 		conn.Close()
-		log.Printf("Connection closed: %s", conn.RemoteAddr())
+		logger.Info("Connection closed", "addr", conn.RemoteAddr().String())
 	}()
 
 	conn.SetReadDeadline(time.Now().Add(tcpIdleTimeout))
@@ -113,15 +109,14 @@ func handleTCPConnection(conn net.Conn, dispatcher *dispatch.Dispatcher, pools [
 
 		var msg types.TCPMessage
 		if err := json.Unmarshal(scanner.Bytes(), &msg); err != nil {
-			log.Printf("Error decoding message from %s: %v (raw: %s)", conn.RemoteAddr(), err, scanner.Text())
+			logger.Error("Error decoding message", "addr", conn.RemoteAddr().String(), "error", err, "raw", scanner.Text())
 			continue
 		}
-		log.Printf("Received action: %s", msg.Action) 
-
+		// logger.Info("Received action", "action", msg.Action) // High frequency - disabled for performance
 		dispatcher.Dispatch(conn, msg)
 	}
 
 	if err := scanner.Err(); err != nil {
-		log.Printf("Connection error from %s: %v", conn.RemoteAddr(), err)
+		logger.Error("Connection error", "addr", conn.RemoteAddr().String(), "error", err)
 	}
 }

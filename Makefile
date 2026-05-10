@@ -1,7 +1,7 @@
 # Windows-friendly Makefile
 PROTO_FILES := $(wildcard proto/*/*.proto)
 
-.PHONY: proto proto-tools proto-generate run-grpc run-api run-tcp run-udp run-ws run-all benchmark-tcp benchmark-udp
+.PHONY: proto proto-tools proto-generate build test test-v test-no-cache run-grpc run-api run-tcp run-udp run-ws run-all benchmark-tcp benchmark-udp
 
 proto:
 	protoc --proto_path=. --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative $(PROTO_FILES)
@@ -13,6 +13,15 @@ proto-tools:
 
 build:
 	go build ./...
+
+test:
+	go test ./...
+
+test-v:
+	go test -v ./...
+
+test-no-cache:
+	go test -count=1 -v ./...
 
 run-grpc:
 	cd cmd/grpc-server && go run main.go
@@ -31,10 +40,10 @@ run-ws:
 
 # Benchmarks
 benchmark-tcp:
-	go run internal/benchmarks/tcp_stress/main.go -conns 2000
+	go run benchmarks/tcp_stress/main.go -conns 16000
 
 benchmark-udp:
-	go run internal/benchmarks/udp_reliability/main.go -n 2000
+	go run benchmarks/udp_broadcast/main.go -clients 16000
 
 # Note: On Windows, it's highly recommended to run servers in separate terminals.
 # This command will launch 5 separate PowerShell windows.
