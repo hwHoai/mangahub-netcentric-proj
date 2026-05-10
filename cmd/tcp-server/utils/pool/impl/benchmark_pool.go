@@ -1,6 +1,7 @@
 package pool_impl
 
 import (
+	benchmarks_prometheus "mangahub/benchmarks/prometheus"
 	"mangahub/pkg/logger"
 	"net"
 	"sync"
@@ -11,13 +12,15 @@ import (
 type BenchmarkPool struct {
 	mu      sync.RWMutex
 	clients map[string][]net.Conn
+	metrics *benchmarks_prometheus.Metrics
 }
 
 var _ pool.ConnectionPool = (*BenchmarkPool)(nil)
 
-func NewBenchmarkPool() *BenchmarkPool {
+func NewBenchmarkPool(metrics *benchmarks_prometheus.Metrics) *BenchmarkPool {
 	return &BenchmarkPool{
 		clients: make(map[string][]net.Conn),
+		metrics: metrics,
 	}
 }
 
@@ -25,6 +28,9 @@ func (p *BenchmarkPool) Register(userID string, conn net.Conn) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.clients[userID] = append(p.clients[userID], conn)
+	p.metrics.ActiveConnections.Inc()
+	p.metrics.TotalRequests.Inc()
+	p.metrics.ResponsesSent.Inc()
 	logger.Info("TCP Subscriber registered (MOCK)", "userID", userID, "total_conns", len(p.clients[userID]))
 }
 
@@ -40,6 +46,8 @@ func (p *BenchmarkPool) Unregister(conn net.Conn) {
 				if len(p.clients[userID]) == 0 {
 					delete(p.clients, userID)
 				}
+
+				p.metrics.ActiveConnections.Dec()
 				return
 			}
 		}
@@ -64,7 +72,10 @@ func (p *BenchmarkPool) Broadcast(userID string, message []byte) {
 		if err != nil {
 			logger.Error("Error sending to benchmark connection", "error", err)
 		}
+		p.metrics.ResponsesSent.Inc()
 	}
+
+	p.metrics.TotalRequests.Inc()
 }
 
 func (p *BenchmarkPool) BroadcastOne(userID string, message []byte, conn net.Conn) {

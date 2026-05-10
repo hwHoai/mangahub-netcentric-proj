@@ -59,17 +59,18 @@ MangaHub operates as a cluster of specialized gateway services communicating int
 
 | Metric | Result |
 |:---|:---|
-| **Average Latency** | `29.0 ms` |
-| **p95 Latency** | `85.1 ms` |
-| **p99 Latency** | `131.4 ms` |
-| **Requests Per Second (RPS)** | `3,290+ req/sec` |
+| **Average Latency** | `53.7 ms` |
+| **p95 Latency** | `162.8 ms` |
+| **p99 Latency** | `253.5 ms` |
+| **Requests Per Second (RPS)** | `3,477+ req/sec` |
 
 ![HTTP Benchmark Evidence](benchmark_evd/http_rest_results.png)
 
 ### 3.3 Real-time Connections (TCP)
-*   **Concurrent Handling**: Successfully maintained **2,000+** active "Ping-Pong-Ack" sessions through the complete stack (Middleware -> Dispatcher -> Handler).
-*   **Memory Footprint**: The entire TCP server consumed only **~72.8 MB** of RAM during peak load.
-*   **Efficiency**: Approximately **~36 KB** per active connection.
+*   **Concurrent Handling**: Successfully maintained **16,000+** active "Ping-Pong-Ack" sessions through the complete stack (Middleware -> Dispatcher -> Handler).
+*   **Memory Footprint**: The entire TCP server consumed only **~240 MB** of heap RAM during peak load (16k connections).
+*   **Efficiency**: Approximately **~15 KB** per active connection.
+*   **Sync Performance**: 100% delivery of broadcast syncs in a simultaneous burst test.
 
 <details>
 <summary><b>📊 Click to view TCP Evidence</b></summary>
@@ -81,9 +82,9 @@ MangaHub operates as a cluster of specialized gateway services communicating int
 </details>
 
 ### 3.4 Reliability & Efficiency (UDP)
-*   **High-Speed Processing**: Processed **2,000 packets** in just **3.2 seconds**.
-*   **Reliability**: Achieved **100.00% delivery success** in local network benchmarks.
-*   **Minimal Footprint**: The UDP server operates with an extremely low memory overhead of only **~5.9 MB**.
+*   **High-Speed Processing**: Dispatched **16,000 packets** in just **8.8 ms**.
+*   **Reliability**: Achieved **100.00% delivery success** with 16,000 concurrent clients.
+*   **Minimal Footprint**: The UDP server operates with an extremely low memory overhead of only **~35 MB** heap RAM.
 
 <details>
 <summary><b>📊 Click to view UDP Evidence</b></summary>

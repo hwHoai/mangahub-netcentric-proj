@@ -3,7 +3,7 @@ package main
 import (
 	"bufio"
 	"encoding/json"
-	"fmt"
+	benchmarks_prometheus "mangahub/benchmarks/prometheus"
 	"mangahub/cmd/tcp-server/dispatch"
 	"mangahub/cmd/tcp-server/handler"
 	pools "mangahub/cmd/tcp-server/utils/pool"
@@ -12,21 +12,16 @@ import (
 	"mangahub/pkg/logger"
 	"mangahub/pkg/types"
 	"net"
-	"net/http"
 	"os"
 	"time"
 
 	"github.com/joho/godotenv"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
 	// Prometheus Exporter
-	go func() {
-		http.Handle("/metrics", promhttp.Handler())
-		fmt.Println("Prometheus metrics available at http://localhost:2112/metrics")
-		http.ListenAndServe(":2112", nil)
-	}()
+	prometheusMetrics := benchmarks_prometheus.InitMetrics("tcp_server", "2112")
+	go prometheusMetrics.ExportMetrics()
 
 	// 1. Load env
 	if err := godotenv.Load("../../.env"); err != nil {
@@ -48,8 +43,8 @@ func main() {
 	defer grpcConn.Close()
 
 	//3. Setup connection pool
-	chapterSyncPool := pool_impl.NewChapterSyncPool(grpcUserMangaClient)
-	benchmarkPool := pool_impl.NewBenchmarkPool()
+	chapterSyncPool := pool_impl.NewChapterSyncPool(grpcUserMangaClient, prometheusMetrics)
+	benchmarkPool := pool_impl.NewBenchmarkPool(prometheusMetrics)
 
 	//4. Init handler
 	chapterSyncHandler := handler.NewChapterSyncHandler(chapterSyncPool)

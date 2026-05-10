@@ -2,6 +2,7 @@ package pool_impl
 
 import (
 	"context"
+	benchmarks_prometheus "mangahub/benchmarks/prometheus"
 	"mangahub/pkg/logger"
 	"net"
 	"sync"
@@ -16,15 +17,17 @@ type ChapterSyncPool struct {
 	clients      map[string][]net.Conn
 	lastChapters map[string]string
 	grpcClient   user_manga.GRPCUserMangaServiceClient
+	metrics      *benchmarks_prometheus.Metrics
 }
 
 var _ pool.ConnectionPool = (*ChapterSyncPool)(nil)
 
-func NewChapterSyncPool(grpcClient user_manga.GRPCUserMangaServiceClient) *ChapterSyncPool {
+func NewChapterSyncPool(grpcClient user_manga.GRPCUserMangaServiceClient, metrics *benchmarks_prometheus.Metrics) *ChapterSyncPool {
 	return &ChapterSyncPool{
 		clients:      make(map[string][]net.Conn),
 		lastChapters: make(map[string]string),
 		grpcClient:   grpcClient,
+		metrics:      metrics,
 	}
 }
 
@@ -40,6 +43,9 @@ func (p *ChapterSyncPool) Register(userID string, conn net.Conn) {
 	}
 
 	p.clients[userID] = append(p.clients[userID], conn)
+	p.metrics.ActiveConnections.Inc()
+	p.metrics.TotalRequests.Inc()
+	p.metrics.ResponsesSent.Inc()
 }
 
 func (p *ChapterSyncPool) Unregister(conn net.Conn) {
@@ -53,6 +59,7 @@ func (p *ChapterSyncPool) Unregister(conn net.Conn) {
 					disconnectedUserID = userID
 					delete(p.clients, userID)
 				}
+				p.metrics.ActiveConnections.Dec()
 				goto done
 			}
 		}
@@ -104,7 +111,10 @@ func (p *ChapterSyncPool) Broadcast(userID string, message []byte) {
 		if err != nil {
 			logger.Error("Error sending to connection", "error", err)
 		}
+		p.metrics.ResponsesSent.Inc()
 	}
+
+	p.metrics.TotalRequests.Inc()
 }
 
 func (p *ChapterSyncPool) BroadcastOne(userID string, message []byte, conn net.Conn) {
@@ -117,16 +127,23 @@ func (p *ChapterSyncPool) BroadcastOne(userID string, message []byte, conn net.C
 	}
 
 	conn.Write(append(message, '\n'))
+	p.metrics.ResponsesSent.Inc()
+	p.metrics.TotalRequests.Inc()
 }
 
 func (p *ChapterSyncPool) UpdateLastChapter(userID string, chapterID string) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.lastChapters[userID] = chapterID
+
+	p.metrics.TotalRequests.Inc()
+	p.metrics.ResponsesSent.Inc()
 }
 
 func (p *ChapterSyncPool) GetLastChapter(userID string) string {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
+	p.metrics.TotalRequests.Inc()
+	p.metrics.ResponsesSent.Inc()
 	return p.lastChapters[userID]
 }

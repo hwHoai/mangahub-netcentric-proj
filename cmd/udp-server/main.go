@@ -1,6 +1,7 @@
 package main
 
 import (
+	benchmarks_prometheus "mangahub/benchmarks/prometheus"
 	"mangahub/cmd/udp-server/dispatch"
 	"mangahub/cmd/udp-server/handler"
 	pool_impl "mangahub/cmd/udp-server/utils/pool/impl"
@@ -12,6 +13,12 @@ import (
 )
 
 func main() {
+	// Intit Prometheus benchmark metrics
+	prometheusMetrics := benchmarks_prometheus.InitMetrics("udp_server", "9091")
+
+	// Start Prometheus metrics server
+	go prometheusMetrics.ExportMetrics()
+
 	//1. Load env
 	if err := godotenv.Load("../../.env"); err != nil {
 		logger.Warn("No .env file found, using environment variables if set")
@@ -35,9 +42,9 @@ func main() {
 	udpServer := dispatch.NewUDPServer()
 
 	//4. Setup Pool
-	chapterPool := pool_impl.NewChapterNotificationPool(grpcUserMangaClient)
-	messagePool := pool_impl.NewMessageNotificationPool(grpcUserMangaClient)
-	benchmarkPool := pool_impl.NewBenchmarkPool()
+	chapterPool := pool_impl.NewChapterNotificationPool(grpcUserMangaClient, prometheusMetrics)
+	messagePool := pool_impl.NewMessageNotificationPool(grpcUserMangaClient, prometheusMetrics)
+	benchmarkPool := pool_impl.NewBenchmarkPool(prometheusMetrics)
 
 	//5. Setup Handlers
 	notificationHandler := handler.NewNotificationHandler(chapterPool, messagePool)

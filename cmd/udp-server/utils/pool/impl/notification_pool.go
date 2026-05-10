@@ -8,44 +8,85 @@ import (
 	"sync"
 	"time"
 
+	benchmarks_prometheus "mangahub/benchmarks/prometheus"
 	udp_pools "mangahub/cmd/udp-server/utils/pool"
 	"mangahub/pkg/logger"
 	"mangahub/proto/user_manga"
 )
 
 type chapterNotificationPool struct {
-	mu          sync.RWMutex
-	clients     map[string]*net.UDPAddr
-	failCount   map[string]int
-	pendingAcks map[string]chan bool // key: notificationID:userID
-	grpcClient  user_manga.GRPCUserMangaServiceClient
+	mu                sync.RWMutex
+	clients           map[string]*net.UDPAddr
+	failCount         map[string]int
+	lastSeen          map[string]time.Time
+	pendingAcks       map[string]chan bool // key: notificationID:userID
+	grpcClient        user_manga.GRPCUserMangaServiceClient
+	prometheusMetrics *benchmarks_prometheus.Metrics
 }
 
 var _ udp_pools.UDPPool = (*chapterNotificationPool)(nil)
 
-func NewChapterNotificationPool(grpcClient user_manga.GRPCUserMangaServiceClient) udp_pools.UDPPool {
-	return &chapterNotificationPool{
-		clients:     make(map[string]*net.UDPAddr),
-		failCount:   make(map[string]int),
-		pendingAcks: make(map[string]chan bool),
-		grpcClient:  grpcClient,
+func NewChapterNotificationPool(grpcClient user_manga.GRPCUserMangaServiceClient, prometheusMetrics *benchmarks_prometheus.Metrics) udp_pools.UDPPool {
+	p := &chapterNotificationPool{
+		clients:           make(map[string]*net.UDPAddr),
+		failCount:         make(map[string]int),
+		lastSeen:          make(map[string]time.Time),
+		pendingAcks:       make(map[string]chan bool),
+		grpcClient:        grpcClient,
+		prometheusMetrics: prometheusMetrics,
+	}
+
+	go p.startCleanupLoop()
+
+	return p
+}
+
+func (p *chapterNotificationPool) startCleanupLoop() {
+	ticker := time.NewTicker(1 * time.Minute)
+	defer ticker.Stop()
+
+	for range ticker.C {
+		var stale []string
+		p.mu.Lock()
+		for userID, lastSeen := range p.lastSeen {
+			if time.Since(lastSeen) > 5*time.Minute {
+				stale = append(stale, userID)
+			}
+		}
+		p.mu.Unlock()
+
+		for _, userID := range stale {
+			p.Unregister(userID, "TTL")
+		}
 	}
 }
 
 func (p *chapterNotificationPool) Register(userID string, addr *net.UDPAddr) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
+
+	if _, exists := p.clients[userID]; !exists {
+		p.prometheusMetrics.ActiveConnections.Inc()
+	}
+
 	p.clients[userID] = addr
+	p.lastSeen[userID] = time.Now()
+	p.prometheusMetrics.ResponsesSent.Inc()
+	p.prometheusMetrics.TotalRequests.Inc()
 	p.failCount[userID] = 0
 	logger.Info("UDP client registered", "userID", userID, "addr", addr.String())
 }
 
-func (p *chapterNotificationPool) Unregister(userID string) {
+func (p *chapterNotificationPool) Unregister(userID string, reason string) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	delete(p.clients, userID)
-	delete(p.failCount, userID)
-	logger.Info("UDP client unregistered", "userID", userID)
+	if _, exists := p.clients[userID]; exists {
+		delete(p.clients, userID)
+		delete(p.failCount, userID)
+		delete(p.lastSeen, userID)
+		p.prometheusMetrics.ActiveConnections.Dec()
+		logger.Info("UDP chapter client removed", "userID", userID, "reason", reason)
+	}
 }
 
 func (p *chapterNotificationPool) Broadcast(conn *net.UDPConn, mangaID string, payload map[string]interface{}) {
@@ -83,7 +124,8 @@ func (p *chapterNotificationPool) Broadcast(conn *net.UDPConn, mangaID string, p
 		p.mu.RLock()
 		addr, exists := p.clients[userID]
 		p.mu.RUnlock()
-
+		p.prometheusMetrics.ResponsesSent.Inc()
+		p.prometheusMetrics.TotalRequests.Inc()
 		if exists {
 			go p.sendWithRetry(conn, userID, addr, notificationID, dataBytes)
 		}
@@ -118,10 +160,21 @@ func (p *chapterNotificationPool) sendWithRetry(conn *net.UDPConn, userID string
 		case <-ackChan:
 			logger.Info("Received ACK for UDP notification", "userID", userID, "notificationID", notificationID)
 			p.resetFailCount(userID)
+
+			// Update lastSeen on ACK
+			p.mu.Lock()
+			if _, exists := p.clients[userID]; exists {
+				p.lastSeen[userID] = time.Now()
+			}
+			p.mu.Unlock()
+
 			return
 		case <-time.After(2 * time.Second):
 			logger.Warn("UDP notification timeout, retrying...", "userID", userID, "notificationID", notificationID, "attempt", attempt)
 		}
+
+		p.prometheusMetrics.ResponsesSent.Inc()
+		p.prometheusMetrics.TotalRequests.Inc()
 	}
 
 	logger.Error("UDP notification failed after 3 attempts", "userID", userID, "notificationID", notificationID)
@@ -147,9 +200,13 @@ func (p *chapterNotificationPool) incrementFailCount(userID string) {
 	defer p.mu.Unlock()
 	p.failCount[userID]++
 	if p.failCount[userID] >= 5 {
-		logger.Warn("User exceeded max UDP failures, unregistering", "userID", userID)
-		delete(p.clients, userID)
-		delete(p.failCount, userID)
+		if _, exists := p.clients[userID]; exists {
+			delete(p.clients, userID)
+			delete(p.failCount, userID)
+			delete(p.lastSeen, userID)
+			p.prometheusMetrics.ActiveConnections.Dec()
+			logger.Info("UDP chapter client removed", "userID", userID, "reason", "max_failures")
+		}
 	}
 }
 
