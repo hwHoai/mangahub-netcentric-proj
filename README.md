@@ -55,7 +55,7 @@ MangaHub operates as a cluster of specialized gateway services communicating int
     *   Custom Go stress-test scripts for TCP & UDP reliability.
 
 ### 3.2 HTTP API Throughput (REST via gRPC)
-*Tested with 100 concurrent users sending 20,000 requests to the `/api/v1/mangas` endpoint:*
+*Tested with 200 concurrent users sending 20,000 requests to the `/api/v1/mangas` endpoint:*
 
 | Metric | Result |
 |:---|:---|
@@ -75,7 +75,7 @@ MangaHub operates as a cluster of specialized gateway services communicating int
 <details>
 <summary><b>📊 Click to view TCP Evidence</b></summary>
 
-#### Real-time Processing (Ping-Pong-Ack Loop) & RAM Usage (2,000 Connections)
+#### Real-time Processing (Ping-Pong-Ack Loop) & RAM Usage (16,000 Connections)
 
 ![TCP Benchmark Evidence](benchmark_evd/tcp_ping_pong_compressed.gif)
 
@@ -89,7 +89,7 @@ MangaHub operates as a cluster of specialized gateway services communicating int
 <details>
 <summary><b>📊 Click to view UDP Evidence</b></summary>
 
-#### High-Speed Processing (2,000 packets in 3.2s)
+#### High-Speed Processing (16,000 packets in 8.8ms)
 
 ![UDP Benchmark Evidence](benchmark_evd/udp_processing_compressed.gif)
 
