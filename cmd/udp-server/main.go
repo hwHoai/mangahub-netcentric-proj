@@ -54,8 +54,9 @@ func main() {
 	//6. Register handlers
 	udpServer.RegisterHandler("chapter:req_client_register", notificationHandler.ClientRegisterHandler)
 	udpServer.RegisterHandler("chapter:impl_broadcast_chapter", notificationHandler.BroadcastChapterHandler)
-	udpServer.RegisterHandler("chat:impl_broadcast_message", notificationHandler.BroadcastMessageHandler)
 	udpServer.RegisterHandler("chapter:res_ack_notification", notificationHandler.NotificationAckHandler)
+	
+	udpServer.RegisterHandler("chat:impl_broadcast_message", notificationHandler.BroadcastMessageHandler)
 	udpServer.RegisterHandler("pub_key:impl_sync_public_key", keySyncHandler.SyncPublicKeyHandler)
 
 	// Benchmark handler
